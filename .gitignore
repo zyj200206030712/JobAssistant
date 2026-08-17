@@ -1,0 +1,10 @@
+# Personal runtime backups must never enter the public repository.
+JobAssistant-backup*.json
+
+# Local editor/workspace state.
+.vscode/
+*.code-workspace
+
+# Operating-system metadata.
+Thumbs.db
+.DS_Store

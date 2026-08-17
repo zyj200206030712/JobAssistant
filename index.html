@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="本地离线运行的个人求职管理工作台">
+  <title>职路 · 个人求职工作台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">职</div>
+        <div>
+          <strong>职路</strong>
+          <span>个人求职工作台</span>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" type="button" data-page="dashboard" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">⌂</span>
+          <span>首页</span>
+        </button>
+        <button class="nav-item" type="button" data-page="companies">
+          <span class="nav-icon" aria-hidden="true">企</span>
+          <span>企业管理</span>
+        </button>
+        <button class="nav-item" type="button" data-page="learning">
+          <span class="nav-icon" aria-hidden="true">学</span>
+          <span>学习中心</span>
+        </button>
+        <button class="nav-item" type="button" data-page="websites">
+          <span class="nav-icon" aria-hidden="true">链</span>
+          <span>招聘网站</span>
+        </button>
+        <button class="nav-item" type="button" data-page="settings">
+          <span class="nav-icon" aria-hidden="true">设</span>
+          <span>设置</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="status-dot" aria-hidden="true"></span>
+        <div>
+          <strong>数据保存在本机</strong>
+          <span>无需登录，离线可用</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="todayText">今天</p>
+          <h1 id="pageTitle">求职总览</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button theme-toggle" id="themeToggle" type="button" title="切换深色模式" aria-label="切换深色模式">夜</button>
+          <button class="icon-button" id="refreshDashboard" type="button" title="刷新首页数据" aria-label="刷新首页数据">↻</button>
+          <button class="primary-button" id="addCompanyTopbar" type="button" data-go-page="companies">
+            <span aria-hidden="true">＋</span> 添加企业
+          </button>
+        </div>
+      </header>
+
+      <div class="page-container">
+        <section class="page-panel active" id="page-dashboard" data-title="求职总览">
+          <div class="hero-card">
+            <div class="hero-copy">
+              <span class="hero-kicker">校招进度中心</span>
+              <h2>把每一次机会，<br>都稳稳接住。</h2>
+              <p id="heroSummary">正在整理你的求职进度...</p>
+              <button class="text-button" type="button" data-go-page="companies">查看全部企业 <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="progress-visual" aria-label="求职流程进度">
+              <div class="progress-ring" id="progressRing">
+                <div class="progress-ring-inner">
+                  <strong id="progressPercent">0%</strong>
+                  <span>已行动</span>
+                </div>
+              </div>
+              <div class="progress-caption">
+                <span><i class="legend-dot done"></i> 已行动</span>
+                <span><i class="legend-dot pending"></i> 待推进</span>
+              </div>
+            </div>
+          </div>
+
+          <section class="dashboard-section" aria-labelledby="statsTitle">
+            <div class="section-heading compact-heading">
+              <div>
+                <p class="section-kicker">Pipeline</p>
+                <h2 id="statsTitle">投递进展</h2>
+              </div>
+              <span class="muted-text">数据随企业记录自动统计</span>
+            </div>
+            <div class="stats-grid">
+              <article class="stat-card accent-blue">
+                <div class="stat-icon" aria-hidden="true">企</div>
+                <div><span>企业总数</span><strong id="statTotal">0</strong><small>已关注机会</small></div>
+              </article>
+              <article class="stat-card accent-indigo">
+                <div class="stat-icon" aria-hidden="true">投</div>
+                <div><span>已投递</span><strong id="statApplied">0</strong><small>等待后续反馈</small></div>
+              </article>
+              <article class="stat-card accent-amber">
+                <div class="stat-icon" aria-hidden="true">待</div>
+                <div><span>待投递</span><strong id="statPending">0</strong><small>需要尽快处理</small></div>
+              </article>
+              <article class="stat-card accent-violet">
+                <div class="stat-icon" aria-hidden="true">面</div>
+                <div><span>面试中</span><strong id="statInterview">0</strong><small>笔试及面试阶段</small></div>
+              </article>
+              <article class="stat-card accent-green">
+                <div class="stat-icon" aria-hidden="true">✓</div>
+                <div><span>Offer</span><strong id="statOffer">0</strong><small>阶段成果</small></div>
+              </article>
+            </div>
+          </section>
+
+          <div class="dashboard-columns">
+            <section class="content-card" aria-labelledby="recentTitle">
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">Recently added</p>
+                  <h2 id="recentTitle">最近添加企业</h2>
+                </div>
+                <button class="link-button" type="button" data-go-page="companies">查看全部</button>
+              </div>
+              <div class="recent-list" id="recentCompanies"></div>
+            </section>
+
+            <section class="content-card" aria-labelledby="todoTitle">
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">To-do</p>
+                  <h2 id="todoTitle">近期需要处理</h2>
+                </div>
+                <span class="count-badge" id="todoCount">0 项</span>
+              </div>
+              <div class="todo-list" id="todoList"></div>
+            </section>
+          </div>
+
+          <section class="content-card quick-links-card" aria-labelledby="quickLinksTitle">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Quick access</p>
+                <h2 id="quickLinksTitle">常用链接</h2>
+              </div>
+              <button class="primary-button compact-button" id="addQuickLinkButton" type="button"><span aria-hidden="true">＋</span> 新增链接</button>
+            </div>
+            <div class="quick-link-grid" id="quickLinkList"></div>
+          </section>
+        </section>
+
+        <div class="modal-backdrop" id="quickLinkModal" hidden>
+          <section class="modal-panel quick-link-modal-panel" role="dialog" aria-modal="true" aria-labelledby="quickLinkModalTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker">Quick access</p>
+                <h2 id="quickLinkModalTitle">新增常用链接</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-quick-link-modal aria-label="关闭">×</button>
+            </header>
+            <form id="quickLinkForm" novalidate>
+              <input id="quickLinkId" type="hidden">
+              <div class="form-grid quick-link-form-grid">
+                <label class="form-field">
+                  <span>链接名称 <em>*</em></span>
+                  <input id="quickLinkName" name="name" type="text" maxlength="80" placeholder="例如：学校邮箱" required>
+                  <small class="field-error"></small>
+                </label>
+                <label class="form-field">
+                  <span>链接分类 <em>*</em></span>
+                  <input id="quickLinkCategory" name="category" type="text" maxlength="40" list="quickLinkCategoryOptions" placeholder="例如：邮箱、AI 工具" required>
+                  <datalist id="quickLinkCategoryOptions">
+                    <option value="邮箱"></option>
+                    <option value="AI 工具"></option>
+                    <option value="学习"></option>
+                    <option value="办公"></option>
+                    <option value="其他"></option>
+                  </datalist>
+                  <small class="field-error"></small>
+                </label>
+                <label class="form-field form-span-2">
+                  <span>链接网址 <em>*</em></span>
+                  <input id="quickLinkUrl" name="url" type="url" placeholder="https://example.com" required>
+                  <small class="field-error"></small>
+                </label>
+                <label class="form-field form-span-2">
+                  <span>备注</span>
+                  <textarea id="quickLinkRemark" name="remark" rows="3" maxlength="300" placeholder="记录账号用途或使用说明（请勿填写密码）"></textarea>
+                  <small class="field-error"></small>
+                </label>
+              </div>
+              <div class="form-message" id="quickLinkFormMessage" role="alert"></div>
+              <footer class="modal-footer">
+                <button class="secondary-button" type="button" data-close-quick-link-modal>取消</button>
+                <button class="primary-button" type="submit">保存链接</button>
+              </footer>
+            </form>
+          </section>
+        </div>
+
+        <section class="page-panel" id="page-companies" data-title="企业管理">
+          <div class="company-page-heading">
+            <div>
+              <p class="section-kicker">Company pipeline</p>
+              <h2>目标企业与投递进度</h2>
+              <p>集中记录岗位信息、投递节点与招聘时间，避免错过重要机会。</p>
+            </div>
+            <button class="primary-button company-add-button" id="addCompanyButton" type="button">
+              <span aria-hidden="true">＋</span> 新增企业
+            </button>
+          </div>
+
+          <div class="category-tabs" role="tablist" aria-label="企业分类">
+            <button class="category-tab active" type="button" role="tab" aria-selected="true" data-company-category="全部">
+              全部企业 <span id="categoryCountAll">0</span>
+            </button>
+            <button class="category-tab" type="button" role="tab" aria-selected="false" data-company-category="央国企">
+              央国企 <span id="categoryCountStateOwned">0</span>
+            </button>
+            <button class="category-tab" type="button" role="tab" aria-selected="false" data-company-category="研究所">
+              研究所 <span id="categoryCountInstitute">0</span>
+            </button>
+            <button class="category-tab" type="button" role="tab" aria-selected="false" data-company-category="私企">
+              私企 <span id="categoryCountPrivate">0</span>
+            </button>
+            <button class="category-tab" type="button" role="tab" aria-selected="false" data-company-category="外企">
+              外企 <span id="categoryCountForeign">0</span>
+            </button>
+          </div>
+
+          <section class="company-workspace" aria-label="企业列表">
+            <div class="company-toolbar">
+              <label class="search-box" for="companySearch">
+                <span aria-hidden="true">⌕</span>
+                <input id="companySearch" type="search" placeholder="搜索企业全部信息" autocomplete="off">
+              </label>
+              <div class="filter-group">
+                <label class="filter-field">
+                  <span>招聘批次</span>
+                  <select id="batchFilter">
+                    <option value="全部">全部批次</option>
+                    <option value="提前批">提前批</option>
+                    <option value="正式批">正式批</option>
+                    <option value="补录">补录</option>
+                    <option value="其他">其他</option>
+                  </select>
+                </label>
+                <label class="filter-field">
+                  <span>投递状态</span>
+                  <select id="statusFilter">
+                    <option value="全部">全部状态</option>
+                    <option value="未开启">未开启</option>
+                    <option value="待投递">待投递</option>
+                    <option value="已投递">已投递</option>
+                    <option value="笔试">笔试</option>
+                    <option value="一面">一面</option>
+                    <option value="二面">二面</option>
+                    <option value="终面">终面</option>
+                    <option value="Offer">Offer</option>
+                    <option value="未通过">未通过</option>
+                  </select>
+                </label>
+                <button class="secondary-button" id="resetCompanyFilters" type="button">重置</button>
+              </div>
+            </div>
+
+            <div class="company-list-meta">
+              <span id="companyResultCount">共 0 家企业</span>
+              <span>按最近更新排序</span>
+            </div>
+
+            <div class="company-table-wrap">
+              <div class="company-table-head" aria-hidden="true">
+                <span>企业信息</span>
+                <span>目标岗位</span>
+                <span>地点 / 批次</span>
+                <span>当前状态</span>
+                <span>截止日期</span>
+                <span>操作</span>
+              </div>
+              <div id="companyList" class="company-records"></div>
+            </div>
+          </section>
+        </section>
+
+        <div class="modal-backdrop" id="companyModal" hidden>
+          <section class="modal-panel company-modal-panel" role="dialog" aria-modal="true" aria-labelledby="companyModalTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker">Company record</p>
+                <h2 id="companyModalTitle">新增企业</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-company-modal aria-label="关闭">×</button>
+            </header>
+
+            <form id="companyForm" novalidate>
+              <input id="companyId" type="hidden">
+
+              <fieldset class="form-section">
+                <legend><span>01</span> 基本信息</legend>
+                <div class="form-grid">
+                  <label class="form-field form-span-2">
+                    <span>企业名称 <em>*</em></span>
+                    <input id="companyName" name="company" type="text" maxlength="80" placeholder="例如：中国空空导弹研究院" required>
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>企业分类 <em>*</em></span>
+                    <select id="companyCategory" name="category" required>
+                      <option value="">请选择分类</option>
+                      <option value="央国企">央国企</option>
+                      <option value="研究所">研究所</option>
+                      <option value="私企">私企</option>
+                      <option value="外企">外企</option>
+                    </select>
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>工作地点 <em>*</em></span>
+                    <input id="companyLocation" name="location" type="text" maxlength="50" placeholder="例如：北京、贵阳" required>
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>招聘信息来源</span>
+                    <input id="companyUrl" name="companyUrl" type="url" placeholder="https://example.com">
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>岗位链接</span>
+                    <input id="recruitmentUrl" name="recruitmentUrl" type="url" placeholder="https://career.example.com">
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field form-span-2">
+                    <span>企业备注</span>
+                    <textarea id="companyRemark" name="companyRemark" rows="2" maxlength="300" placeholder="企业特点、关注方向等"></textarea>
+                    <small class="field-error"></small>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset class="form-section">
+                <legend><span>02</span> 投递信息</legend>
+                <div class="form-grid">
+                  <label class="form-field">
+                    <span>岗位名称 <em>*</em></span>
+                    <input id="positionName" name="position" type="text" maxlength="80" placeholder="例如：算法工程师" required>
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>岗位方向</span>
+                    <input id="positionDirection" name="direction" type="text" maxlength="80" placeholder="例如：图像算法">
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>招聘批次 <em>*</em></span>
+                    <select id="recruitmentBatch" name="batch" required>
+                      <option value="">请选择批次</option>
+                      <option value="提前批">提前批</option>
+                      <option value="正式批">正式批</option>
+                      <option value="补录">补录</option>
+                      <option value="其他">其他</option>
+                    </select>
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>投递状态 <em>*</em></span>
+                    <select id="applicationStatus" name="status" required>
+                      <option value="">请选择状态</option>
+                      <option value="未开启">未开启</option>
+                      <option value="待投递">待投递</option>
+                      <option value="已投递">已投递</option>
+                      <option value="笔试">笔试</option>
+                      <option value="一面">一面</option>
+                      <option value="二面">二面</option>
+                      <option value="终面">终面</option>
+                      <option value="Offer">Offer</option>
+                      <option value="未通过">未通过</option>
+                    </select>
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>投递日期</span>
+                    <input id="applyDate" name="applyDate" type="date" max="9999-12-31">
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field">
+                    <span>截止日期</span>
+                    <input id="deadline" name="deadline" type="date" max="9999-12-31">
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field form-span-2">
+                    <span>投递状态链接</span>
+                    <input id="positionUrl" name="positionUrl" type="url" placeholder="https://career.example.com/job/123">
+                    <small class="field-error"></small>
+                  </label>
+                  <label class="form-field form-span-2">
+                    <span>投递备注</span>
+                    <textarea id="applicationRemark" name="remark" rows="3" maxlength="500" placeholder="准备事项、沟通记录、面试时间等"></textarea>
+                    <small class="field-error"></small>
+                  </label>
+                </div>
+              </fieldset>
+
+              <div class="form-message" id="companyFormMessage" role="alert"></div>
+              <footer class="modal-footer">
+                <button class="secondary-button" type="button" data-close-company-modal>取消</button>
+                <button class="primary-button" type="submit">保存企业</button>
+              </footer>
+            </form>
+          </section>
+        </div>
+
+        <div class="modal-backdrop confirm-backdrop" id="deleteCompanyModal" hidden>
+          <section class="modal-panel confirm-panel" role="alertdialog" aria-modal="true" aria-labelledby="deleteCompanyTitle">
+            <div class="confirm-icon" aria-hidden="true">!</div>
+            <h2 id="deleteCompanyTitle">确认删除企业？</h2>
+            <p id="deleteCompanyMessage">删除后将无法在列表中恢复。</p>
+            <div class="confirm-actions">
+              <button class="secondary-button" id="cancelDeleteCompany" type="button">取消</button>
+              <button class="danger-button" id="confirmDeleteCompany" type="button">确认删除</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="page-panel" id="page-learning" data-title="学习中心">
+          <div class="learning-page-heading">
+            <div>
+              <p class="section-kicker">Knowledge base</p>
+              <h2>面试与考试学习库</h2>
+              <p>把项目复盘、知识问答、刷题记录和模拟面试整理成可持续复习的资料库。</p>
+            </div>
+            <div class="learning-total"><strong id="learningTotalCount">0</strong><span>条学习记录</span></div>
+          </div>
+
+          <div class="learning-module-grid" id="learningModuleGrid">
+            <button class="learning-module-card active" type="button" data-learning-module="projectHub" style="--module-color:#2f6fe4;--module-bg:#eaf1ff">
+              <span class="module-icon" aria-hidden="true">项</span>
+              <span class="module-card-copy"><strong>我的项目及八股</strong><small>项目复盘与面试知识问答</small></span>
+              <span class="module-count" id="moduleCountProjectHub">0</span>
+            </button>
+            <button class="learning-module-card" type="button" data-learning-module="aptitudeTests" style="--module-color:#7a58c5;--module-bg:#f1ecff">
+              <span class="module-icon" aria-hidden="true">测</span>
+              <span class="module-card-copy"><strong>央国企行测</strong><small>五类题型与错题复盘</small></span>
+              <span class="module-count" id="moduleCountAptitude">0</span>
+            </button>
+            <button class="learning-module-card" type="button" data-learning-module="essays" style="--module-color:#c4771b;--module-bg:#fff3e3">
+              <span class="module-icon" aria-hidden="true">申</span>
+              <span class="module-card-copy"><strong>贵州选调申论</strong><small>主题素材、金句与案例</small></span>
+              <span class="module-count" id="moduleCountEssays">0</span>
+            </button>
+            <button class="learning-module-card" type="button" data-learning-module="leetcode" style="--module-color:#0a9364;--module-bg:#e7f8f1">
+              <span class="module-icon" aria-hidden="true">算</span>
+              <span class="module-card-copy"><strong>LeetCode 算法</strong><small>题解、代码与复杂度</small></span>
+              <span class="module-count" id="moduleCountLeetcode">0</span>
+            </button>
+            <button class="learning-module-card" type="button" data-learning-module="mockInterviews" style="--module-color:#d25160;--module-bg:#fff0f2">
+              <span class="module-icon" aria-hidden="true">面</span>
+              <span class="module-card-copy"><strong>模拟面试</strong><small>问题、回答与随机练习</small></span>
+              <span class="module-count" id="moduleCountMock">0</span>
+            </button>
+          </div>
+
+          <section class="learning-workspace" aria-labelledby="learningWorkspaceTitle">
+            <header class="learning-workspace-header">
+              <div>
+                <p class="section-kicker" id="learningWorkspaceKicker">Project & knowledge</p>
+                <h2 id="learningWorkspaceTitle">我的项目及八股</h2>
+                <p id="learningWorkspaceDescription">沉淀项目经历和高频面试知识。</p>
+              </div>
+              <div class="learning-header-actions">
+                <button class="secondary-button random-question-button" id="randomQuestionButton" type="button" hidden>随机抽题</button>
+                <button class="primary-button" id="addLearningRecord" type="button"><span aria-hidden="true">＋</span> 新增记录</button>
+              </div>
+            </header>
+
+            <div class="learning-subtabs" id="learningSubtabs">
+              <button class="learning-subtab active" type="button" data-learning-dataset="projects">项目经历</button>
+              <button class="learning-subtab" type="button" data-learning-dataset="interviewKnowledge">八股问答</button>
+            </div>
+
+            <div class="random-question-panel" id="randomQuestionPanel" hidden>
+              <div class="random-question-label"><span aria-hidden="true">随</span> 本次模拟题</div>
+              <h3 id="randomQuestionText">点击“随机抽题”开始模拟面试</h3>
+              <div class="random-question-actions">
+                <button class="secondary-button" id="viewRandomAnswer" type="button">查看回答</button>
+                <button class="secondary-button" id="drawAnotherQuestion" type="button">换一道</button>
+              </div>
+              <div class="random-answer" id="randomAnswer" hidden></div>
+            </div>
+
+            <div class="learning-toolbar">
+              <label class="search-box learning-search" for="learningSearch">
+                <span aria-hidden="true">⌕</span>
+                <input id="learningSearch" type="search" placeholder="搜索当前模块" autocomplete="off">
+              </label>
+              <label class="filter-field learning-filter" id="learningFilterField">
+                <span id="learningFilterLabel">分类筛选</span>
+                <select id="learningFilter"><option value="全部">全部</option></select>
+              </label>
+              <button class="secondary-button" id="resetLearningFilters" type="button">重置</button>
+            </div>
+
+            <div class="learning-list-meta">
+              <span id="learningResultCount">共 0 条记录</span>
+              <span>最近更新优先</span>
+            </div>
+            <div class="learning-record-grid" id="learningRecordList"></div>
+          </section>
+        </section>
+
+        <div class="modal-backdrop" id="learningModal" hidden>
+          <section class="modal-panel learning-modal-panel" role="dialog" aria-modal="true" aria-labelledby="learningModalTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker" id="learningModalKicker">Learning record</p>
+                <h2 id="learningModalTitle">新增学习记录</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-learning-modal aria-label="关闭">×</button>
+            </header>
+            <form id="learningForm" novalidate>
+              <input id="learningRecordId" type="hidden">
+              <input id="learningRecordDataset" type="hidden">
+              <div class="form-grid learning-form-grid" id="learningFormFields"></div>
+              <section class="learning-image-field" id="learningImageField" aria-labelledby="learningImageFieldTitle">
+                <div class="learning-image-heading">
+                  <div>
+                    <strong id="learningImageFieldTitle">相关图片</strong>
+                    <span>支持 Ctrl+V 粘贴截图、拖入图片或点击选择</span>
+                  </div>
+                  <span id="learningImageCount">0 / 20</span>
+                </div>
+                <input id="learningImageInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+                <label class="learning-image-dropzone" id="learningImageDropzone" for="learningImageInput" tabindex="0">
+                  <span class="learning-image-drop-icon" aria-hidden="true">图</span>
+                  <span><strong>粘贴或选择图片</strong><small>PNG、JPEG、WebP；单张不超过 10 MB</small></span>
+                </label>
+                <div class="learning-image-preview-grid" id="learningImagePreviewGrid"></div>
+                <div class="learning-image-message" id="learningImageMessage" role="status"></div>
+              </section>
+              <div class="form-message" id="learningFormMessage" role="alert"></div>
+              <footer class="modal-footer">
+                <button class="secondary-button" type="button" data-close-learning-modal>取消</button>
+                <button class="primary-button" type="submit">保存记录</button>
+              </footer>
+            </form>
+          </section>
+        </div>
+
+        <div class="modal-backdrop" id="aptitudeDetailModal" hidden>
+          <section class="modal-panel aptitude-detail-panel" role="dialog" aria-modal="true" aria-labelledby="aptitudeDetailTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker">Aptitude detail</p>
+                <h2 id="aptitudeDetailTitle">行测题目详情</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-aptitude-detail aria-label="关闭">×</button>
+            </header>
+            <div class="aptitude-detail-content">
+              <div class="aptitude-detail-meta">
+                <span class="record-type-tag" id="aptitudeDetailType">未分类</span>
+                <span class="record-state-tag" id="aptitudeDetailFavoriteState" hidden>已收藏</span>
+                <span class="record-state-tag" id="aptitudeDetailWrongState" hidden>错题</span>
+              </div>
+              <section class="aptitude-question-block" aria-labelledby="aptitudeDetailQuestionLabel">
+                <span id="aptitudeDetailQuestionLabel">题目</span>
+                <h3 id="aptitudeDetailQuestion"></h3>
+              </section>
+              <div class="aptitude-detail-sections">
+                <section class="aptitude-answer-section">
+                  <h3><span aria-hidden="true">答</span> 正确答案</h3>
+                  <p id="aptitudeDetailAnswer"></p>
+                </section>
+                <section class="aptitude-analysis-section">
+                  <h3><span aria-hidden="true">析</span> 题目解析</h3>
+                  <p id="aptitudeDetailAnalysis"></p>
+                </section>
+                <section class="aptitude-wrong-section">
+                  <h3><span aria-hidden="true">错</span> 错题原因</h3>
+                  <p id="aptitudeDetailWrongReason"></p>
+                </section>
+              </div>
+              <section class="learning-detail-gallery" id="aptitudeDetailImages" hidden>
+                <h3><span aria-hidden="true">图</span> 相关图片</h3>
+                <div class="learning-detail-image-grid" id="aptitudeDetailImageGrid"></div>
+              </section>
+            </div>
+            <footer class="aptitude-detail-footer">
+              <div>
+                <button class="secondary-button aptitude-detail-flag" id="aptitudeDetailFavorite" type="button">收藏题目</button>
+                <button class="secondary-button aptitude-detail-flag" id="aptitudeDetailWrong" type="button">标记错题</button>
+              </div>
+              <div>
+                <button class="secondary-button" type="button" data-close-aptitude-detail>关闭</button>
+                <button class="primary-button" id="editAptitudeFromDetail" type="button">编辑题目</button>
+              </div>
+            </footer>
+          </section>
+        </div>
+
+        <div class="modal-backdrop" id="leetcodeDetailModal" hidden>
+          <section class="modal-panel leetcode-detail-panel" role="dialog" aria-modal="true" aria-labelledby="leetcodeDetailTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker">LeetCode solution</p>
+                <h2 id="leetcodeDetailTitle">算法题详情</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-leetcode-detail aria-label="关闭">×</button>
+            </header>
+            <div class="leetcode-detail-content">
+              <div class="leetcode-detail-meta">
+                <span class="leetcode-number-tag" id="leetcodeDetailNumber">#—</span>
+                <span class="record-type-tag" id="leetcodeDetailDifficulty">难度待定</span>
+                <span class="record-type-tag" id="leetcodeDetailType">未分类</span>
+                <span class="record-state-tag" id="leetcodeDetailCompletedState" hidden>已完成</span>
+                <span class="record-state-tag" id="leetcodeDetailReviewState" hidden>待复习</span>
+              </div>
+              <h3 class="leetcode-detail-name" id="leetcodeDetailName">未命名题目</h3>
+
+              <section class="leetcode-problem-section" aria-labelledby="leetcodeProblemLabel">
+                <h4 id="leetcodeProblemLabel"><span aria-hidden="true">题</span> 题目详情</h4>
+                <p id="leetcodeDetailProblem"></p>
+              </section>
+
+              <div class="leetcode-solution-grid">
+                <section class="leetcode-solution-section">
+                  <h4><span aria-hidden="true">解</span> 解题思路</h4>
+                  <p id="leetcodeDetailApproach"></p>
+                </section>
+                <section class="leetcode-code-section">
+                  <h4><span aria-hidden="true">码</span> Python 代码</h4>
+                  <pre><code id="leetcodeDetailCode"></code></pre>
+                </section>
+              </div>
+
+              <div class="leetcode-complexity-grid">
+                <section>
+                  <span>时间复杂度</span>
+                  <strong id="leetcodeDetailTime">暂未填写</strong>
+                </section>
+                <section>
+                  <span>空间复杂度</span>
+                  <strong id="leetcodeDetailSpace">暂未填写</strong>
+                </section>
+              </div>
+              <section class="learning-detail-gallery" id="leetcodeDetailImages" hidden>
+                <h4><span aria-hidden="true">图</span> 相关图片</h4>
+                <div class="learning-detail-image-grid" id="leetcodeDetailImageGrid"></div>
+              </section>
+            </div>
+            <footer class="leetcode-detail-footer">
+              <div>
+                <a class="secondary-button" id="leetcodeDetailOpenLink" href="#" target="_blank" rel="noopener noreferrer">打开原题</a>
+                <button class="secondary-button leetcode-detail-flag" id="leetcodeDetailCompleted" type="button">标记完成</button>
+                <button class="secondary-button leetcode-detail-flag" id="leetcodeDetailReview" type="button">标记复习</button>
+              </div>
+              <div>
+                <button class="secondary-button" type="button" data-close-leetcode-detail>关闭</button>
+                <button class="primary-button" id="editLeetcodeFromDetail" type="button">编辑题目</button>
+              </div>
+            </footer>
+          </section>
+        </div>
+
+        <div class="modal-backdrop" id="generalLearningDetailModal" hidden>
+          <section class="modal-panel general-learning-detail-panel" id="generalLearningDetailPanel" role="dialog" aria-modal="true" aria-labelledby="generalLearningDetailTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker" id="generalLearningDetailKicker">Learning detail</p>
+                <h2 id="generalLearningDetailTitle">学习记录详情</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-general-learning-detail aria-label="关闭">×</button>
+            </header>
+            <div class="general-learning-detail-content">
+              <div class="general-learning-detail-meta" id="generalLearningDetailMeta"></div>
+              <h3 class="general-learning-detail-name" id="generalLearningDetailRecordTitle">未命名记录</h3>
+              <div class="general-learning-detail-sections" id="generalLearningDetailSections"></div>
+              <section class="learning-detail-gallery" id="generalLearningDetailImages" hidden>
+                <h4><span aria-hidden="true">图</span> 相关图片</h4>
+                <div class="learning-detail-image-grid" id="generalLearningDetailImageGrid"></div>
+              </section>
+            </div>
+            <footer class="general-learning-detail-footer">
+              <button class="secondary-button" type="button" data-close-general-learning-detail>关闭</button>
+              <button class="primary-button" id="editGeneralLearningFromDetail" type="button">编辑记录</button>
+            </footer>
+          </section>
+        </div>
+
+        <div class="modal-backdrop confirm-backdrop" id="deleteLearningModal" hidden>
+          <section class="modal-panel confirm-panel" role="alertdialog" aria-modal="true" aria-labelledby="deleteLearningTitle">
+            <div class="confirm-icon" aria-hidden="true">!</div>
+            <h2 id="deleteLearningTitle">确认删除记录？</h2>
+            <p id="deleteLearningMessage">删除后将无法恢复。</p>
+            <div class="confirm-actions">
+              <button class="secondary-button" id="cancelDeleteLearning" type="button">取消</button>
+              <button class="danger-button" id="confirmDeleteLearning" type="button">确认删除</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="modal-backdrop image-lightbox" id="learningImageLightbox" hidden>
+          <section class="image-lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="learningImageLightboxTitle">
+            <header>
+              <div><strong id="learningImageLightboxTitle">图片预览</strong><span id="learningImageLightboxCounter"></span></div>
+              <button class="modal-close" id="closeLearningImageLightbox" type="button" aria-label="关闭图片预览">×</button>
+            </header>
+            <div class="image-lightbox-stage">
+              <button class="image-lightbox-nav previous" id="learningImagePrevious" type="button" aria-label="上一张图片">‹</button>
+              <img id="learningImageLightboxImage" alt="">
+              <button class="image-lightbox-nav next" id="learningImageNext" type="button" aria-label="下一张图片">›</button>
+            </div>
+            <footer><span id="learningImageLightboxName"></span><span id="learningImageLightboxMeta"></span></footer>
+          </section>
+        </div>
+
+        <section class="page-panel" id="page-websites" data-title="招聘网站">
+          <div class="website-page-heading">
+            <div>
+              <p class="section-kicker">Recruitment links</p>
+              <h2>常用招聘网站</h2>
+              <p>集中保存求职平台、官方渠道与企业招聘官网，减少重复查找。</p>
+            </div>
+            <button class="primary-button" id="addWebsiteButton" type="button"><span aria-hidden="true">＋</span> 新增网站</button>
+          </div>
+
+          <section class="website-overview" aria-label="网站概览">
+            <div class="website-summary-card">
+              <span class="website-summary-icon" aria-hidden="true">链</span>
+              <div><strong id="websiteTotalCount">0</strong><span>个快捷入口</span></div>
+            </div>
+            <div class="website-category-chips" id="websiteCategoryChips"></div>
+          </section>
+
+          <section class="website-workspace" aria-label="招聘网站列表">
+            <div class="website-toolbar">
+              <label class="search-box website-search" for="websiteSearch">
+                <span aria-hidden="true">⌕</span>
+                <input id="websiteSearch" type="search" placeholder="搜索网站名称、分类或备注" autocomplete="off">
+              </label>
+              <div class="website-filter-actions">
+                <label class="filter-field">
+                  <span>网站分类</span>
+                  <select id="websiteCategoryFilter"><option value="全部">全部分类</option></select>
+                </label>
+                <button class="secondary-button" id="resetWebsiteFilters" type="button">重置</button>
+              </div>
+            </div>
+            <div class="website-list-meta">
+              <span id="websiteResultCount">共 0 个网站</span>
+              <span>点击“访问”将在新标签页打开</span>
+            </div>
+            <div class="website-card-grid" id="websiteList"></div>
+          </section>
+        </section>
+
+        <div class="modal-backdrop" id="websiteModal" hidden>
+          <section class="modal-panel website-modal-panel" role="dialog" aria-modal="true" aria-labelledby="websiteModalTitle">
+            <header class="modal-header">
+              <div>
+                <p class="section-kicker">Website shortcut</p>
+                <h2 id="websiteModalTitle">新增网站</h2>
+              </div>
+              <button class="modal-close" type="button" data-close-website-modal aria-label="关闭">×</button>
+            </header>
+            <form id="websiteForm" novalidate>
+              <input id="websiteId" type="hidden">
+              <div class="form-grid website-form-grid">
+                <label class="form-field form-span-2">
+                  <span>网站名称 <em>*</em></span>
+                  <input id="websiteName" name="name" type="text" maxlength="80" placeholder="例如：牛客" required>
+                  <small class="field-error"></small>
+                </label>
+                <label class="form-field form-span-2">
+                  <span>网站分类 <em>*</em></span>
+                  <input id="websiteCategory" name="category" type="text" maxlength="40" list="websiteCategorySuggestions" placeholder="例如：求职社区、官方平台" required>
+                  <datalist id="websiteCategorySuggestions">
+                    <option value="求职社区"></option>
+                    <option value="综合招聘"></option>
+                    <option value="官方平台"></option>
+                    <option value="企业官网"></option>
+                  </datalist>
+                  <small class="field-error"></small>
+                </label>
+                <label class="form-field form-span-2">
+                  <span>网站网址 <em>*</em></span>
+                  <input id="websiteUrl" name="url" type="url" placeholder="https://example.com" required>
+                  <small class="field-error"></small>
+                </label>
+                <label class="form-field form-span-2">
+                  <span>备注</span>
+                  <textarea id="websiteRemark" name="remark" rows="3" maxlength="300" placeholder="网站用途、使用提示等"></textarea>
+                  <small class="field-error"></small>
+                </label>
+              </div>
+              <div class="form-message" id="websiteFormMessage" role="alert"></div>
+              <footer class="modal-footer">
+                <button class="secondary-button" type="button" data-close-website-modal>取消</button>
+                <button class="primary-button" type="submit">保存网站</button>
+              </footer>
+            </form>
+          </section>
+        </div>
+
+        <div class="modal-backdrop confirm-backdrop" id="deleteWebsiteModal" hidden>
+          <section class="modal-panel confirm-panel" role="alertdialog" aria-modal="true" aria-labelledby="deleteWebsiteTitle">
+            <div class="confirm-icon" aria-hidden="true">!</div>
+            <h2 id="deleteWebsiteTitle">确认删除网站？</h2>
+            <p id="deleteWebsiteMessage">删除后将无法恢复。</p>
+            <div class="confirm-actions">
+              <button class="secondary-button" id="cancelDeleteWebsite" type="button">取消</button>
+              <button class="danger-button" id="confirmDeleteWebsite" type="button">确认删除</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="page-panel" id="page-settings" data-title="设置">
+          <div class="settings-page-heading">
+            <div>
+              <p class="section-kicker">Preferences & backup</p>
+              <h2>设置与数据管理</h2>
+              <p>调整界面主题，查看本机数据，并通过 JSON 备份迁移全部求职资料。</p>
+            </div>
+            <span class="local-status-badge"><i aria-hidden="true"></i> 本机离线存储</span>
+          </div>
+
+          <div class="settings-overview-grid">
+            <article class="settings-stat-card">
+              <span class="settings-stat-icon blue" aria-hidden="true">企</span>
+              <div><strong id="settingsCompanyCount">0</strong><span>企业记录</span></div>
+            </article>
+            <article class="settings-stat-card">
+              <span class="settings-stat-icon violet" aria-hidden="true">学</span>
+              <div><strong id="settingsLearningCount">0</strong><span>学习记录</span></div>
+            </article>
+            <article class="settings-stat-card">
+              <span class="settings-stat-icon green" aria-hidden="true">链</span>
+              <div><strong id="settingsWebsiteCount">0</strong><span>网站入口</span></div>
+            </article>
+            <article class="settings-stat-card">
+              <span class="settings-stat-icon amber" aria-hidden="true">存</span>
+              <div><strong id="settingsStorageSize">0 KB</strong><span>数据占用</span></div>
+            </article>
+            <article class="settings-stat-card">
+              <span class="settings-stat-icon violet" aria-hidden="true">图</span>
+              <div><strong id="settingsImageCount">0</strong><span id="settingsImageSize">图片占用 0 KB</span></div>
+            </article>
+          </div>
+
+          <div class="settings-layout">
+            <section class="settings-card appearance-settings" aria-labelledby="appearanceTitle">
+              <div class="settings-card-heading">
+                <span class="settings-heading-icon" aria-hidden="true">色</span>
+                <div><h3 id="appearanceTitle">外观主题</h3><p>选择更适合当前环境的界面模式。</p></div>
+              </div>
+              <div class="theme-choice-group" role="radiogroup" aria-label="外观主题">
+                <button class="theme-choice active" type="button" role="radio" aria-checked="true" data-theme-choice="light">
+                  <span class="theme-preview light-preview"><i></i><i></i><i></i></span>
+                  <span><strong>浅色模式</strong><small>清晰明亮，适合白天</small></span>
+                  <i class="theme-check" aria-hidden="true">✓</i>
+                </button>
+                <button class="theme-choice" type="button" role="radio" aria-checked="false" data-theme-choice="dark">
+                  <span class="theme-preview dark-preview"><i></i><i></i><i></i></span>
+                  <span><strong>深色模式</strong><small>降低亮度，适合夜间</small></span>
+                  <i class="theme-check" aria-hidden="true">✓</i>
+                </button>
+              </div>
+            </section>
+
+            <section class="settings-card file-sync-settings" aria-labelledby="fileSyncTitle">
+              <div class="settings-card-heading">
+                <span class="settings-heading-icon sync" aria-hidden="true">同</span>
+                <div><h3 id="fileSyncTitle">本地文件同步</h3><p>绑定只选择文件；写入和恢复数据必须分别确认。</p></div>
+              </div>
+
+              <div class="file-sync-status" id="fileSyncStatus">
+                <span class="file-sync-status-icon" aria-hidden="true"></span>
+                <div>
+                  <strong id="fileSyncStatusText">尚未绑定备份文件</strong>
+                  <span id="fileSyncFileName">请选择一个本地 JSON 文件</span>
+                </div>
+              </div>
+
+              <label class="file-sync-toggle" for="autoFileSyncToggle">
+                <span><strong>修改后自动同步</strong><small>每次保存、删除或导入数据后自动更新文件</small></span>
+                <input id="autoFileSyncToggle" type="checkbox" role="switch">
+                <i aria-hidden="true"></i>
+              </label>
+
+              <div class="file-sync-meta">
+                <span>最近同步</span>
+                <strong id="fileSyncLastTime">尚未同步</strong>
+              </div>
+              <div class="file-sync-error" id="fileSyncError" role="alert" hidden></div>
+
+              <div class="file-sync-actions">
+                <button class="primary-button" id="bindBackupFile" type="button">绑定本地备份文件</button>
+                <button class="secondary-button" id="syncBackupFile" type="button" disabled>立即同步（写入文件）</button>
+                <button class="secondary-button file-sync-unbind" id="unbindBackupFile" type="button" disabled>解除绑定</button>
+              </div>
+              <p class="file-sync-help" id="fileSyncHelp">绑定不会读取或写入文件；恢复数据请使用下方“导入 JSON”。</p>
+            </section>
+
+            <section class="settings-card data-settings" aria-labelledby="dataSettingsTitle">
+              <div class="settings-card-heading">
+                <span class="settings-heading-icon" aria-hidden="true">数</span>
+                <div><h3 id="dataSettingsTitle">JSON 数据备份</h3><p>备份文件包含企业、学习资料、相关图片和招聘网站。</p></div>
+              </div>
+
+              <div class="backup-action-row">
+                <div class="backup-action-copy">
+                  <strong>导出全部数据</strong>
+                  <span>弹出“另存为”窗口，自选文件夹并生成带日期时间的完整备份。</span>
+                </div>
+                <button class="primary-button" id="exportAllData" type="button">选择位置并导出</button>
+              </div>
+
+              <div class="import-section">
+                <div class="backup-action-copy">
+                  <strong>导入 JSON 数据</strong>
+                  <span>支持本工作台完整备份，以及单独的企业、学习或网站 JSON。</span>
+                </div>
+                <input id="importDataFile" type="file" accept=".json,application/json" hidden>
+                <label class="import-dropzone" id="importDropzone" for="importDataFile">
+                  <span class="import-drop-icon" aria-hidden="true">入</span>
+                  <strong>选择或拖入 JSON 文件</strong>
+                  <small>文件仅在本机浏览器中处理，不会上传</small>
+                </label>
+
+                <div class="import-preview" id="importPreview" hidden>
+                  <div class="import-file-info">
+                    <span class="import-file-icon" aria-hidden="true">JSON</span>
+                    <div><strong id="importFileName">backup.json</strong><span id="importFileSummary">等待解析</span></div>
+                    <button class="record-action" id="clearImportFile" type="button" title="移除文件" aria-label="移除待导入文件">×</button>
+                  </div>
+                  <label class="import-strategy">
+                    <span>导入方式</span>
+                    <select id="importStrategy">
+                      <option value="merge">合并现有数据（推荐）</option>
+                      <option value="replace">覆盖对应数据</option>
+                    </select>
+                  </label>
+                  <div class="import-warning" id="importWarning">合并时，相同 ID 的记录将以导入文件为准。</div>
+                  <button class="primary-button import-confirm-button" id="confirmImportData" type="button">确认导入</button>
+                </div>
+                <div class="settings-message" id="importMessage" role="alert"></div>
+              </div>
+            </section>
+
+            <aside class="settings-card data-note-card">
+              <div class="settings-card-heading">
+                <span class="settings-heading-icon" aria-hidden="true">安</span>
+                <div><h3>本地数据说明</h3><p>了解离线存储的边界。</p></div>
+              </div>
+              <ul class="settings-note-list">
+                <li><span>01</span>数据自动保存在当前浏览器和当前文件路径下。</li>
+                <li><span>02</span>文字和图片均保存在本机；清理浏览器数据前请先导出 JSON。</li>
+                <li><span>03</span>更换电脑、浏览器或移动文件后，可用备份恢复。</li>
+                <li><span>04</span>所有处理均在本机完成，不会连接服务器。</li>
+                <li><span>05</span>绑定备份文件后，可将每次数据修改同步写入磁盘。</li>
+              </ul>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript>此工作台需要启用 JavaScript 才能正常使用。</noscript>
+  <script src="script.js"></script>
+</body>
+</html>

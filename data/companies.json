@@ -1,0 +1,40 @@
+[
+  {
+    "id": "company-e5dea2d4-569f-4525-80b0-19a549a3129b",
+    "company": "贵州选调",
+    "category": "央国企",
+    "companyUrl": "https://job.bit.edu.cn/frontpage/bit/html/index_xds.html",
+    "recruitmentUrl": "https://zpy.qgsydw.com/gzzzb_ksbm/main.html?zkxmid=4699&home=1&flag=1&rd=0.469525",
+    "location": "贵阳，安顺，铜仁",
+    "companyRemark": "招1000人左右，只申论，结构化面试，报名时间10.13，笔试时间11.7\n26选调公告：https://zpy.qgsydw.com/gzzzb_ksbm/notice/2610135663.html\n26备考解读：https://mp.weixin.qq.com/s/JD6iYZ6YoyavW5IvlHVMpQ\n27备考解读：https://mp.weixin.qq.com/s/hO7sTlbHPg3p2fcm7Kc60w\n定向选调公众号，贵州人事招录信息网公众号",
+    "position": "专业技术岗",
+    "direction": "信息技术和工矿能源方向",
+    "batch": "正式批",
+    "status": "待投递",
+    "applyDate": "2026-10-13",
+    "deadline": "2026-10-15",
+    "positionUrl": "",
+    "remark": "年薪9-13万，不考贵阳",
+    "createdAt": "2026-08-01T09:13:46.918Z",
+    "updatedAt": "2026-08-01T09:17:50.864Z"
+  },
+  {
+    "id": "company-3bee7cae-7736-401a-8286-f350631fd1d6",
+    "company": "贵州航天控制技术公司（0612研究所）",
+    "category": "研究所",
+    "companyUrl": "",
+    "recruitmentUrl": "https://casic.m.zhiye.com/htkz/joblist.html?jc=2&ky=%E4%BF%A1%E6%81%AF&pi=1&ps=10&c1=&c2=3_179&c=",
+    "location": "贵阳",
+    "companyRemark": "隶属中国航天科工集团下的航天科工十院",
+    "position": "信息系统开发师",
+    "direction": "VS、Office、Python、数据库",
+    "batch": "提前批",
+    "status": "已投递",
+    "applyDate": "2026-07-07",
+    "deadline": "",
+    "positionUrl": "https://casic.m.zhiye.com/#/deliverstatus",
+    "remark": "已投官网和邮件",
+    "createdAt": "2026-08-01T09:38:36.120Z",
+    "updatedAt": "2026-08-01T09:40:25.808Z"
+  }
+]

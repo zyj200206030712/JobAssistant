@@ -1,0 +1,97 @@
+{
+  "projects": [
+    {
+      "id": "project-001",
+      "name": "复杂场景目标检测研究",
+      "projectTime": "2025.03 - 2026.01",
+      "introduction": "针对小目标和遮挡场景优化检测精度，完成数据处理、模型训练与实验对比。",
+      "techStack": "Python、PyTorch、OpenCV、YOLO",
+      "work": "负责数据清洗、模型改进、消融实验和结果分析。",
+      "challengeSolution": "项目困难：小目标特征弱，类别分布不均衡。\n解决方式：引入多尺度特征融合并调整采样策略。",
+      "outcome": "完成多组消融实验，形成可复现的训练流程和项目报告。",
+      "explanation": "面试时按照背景、目标、个人工作、难点、量化结果和反思展开。",
+      "images": [],
+      "createdAt": "2026-07-24T09:30:00+08:00",
+      "updatedAt": "2026-07-30T19:20:00+08:00"
+    }
+  ],
+  "interviewKnowledge": [
+    {
+      "id": "knowledge-001",
+      "question": "进程和线程有什么区别？",
+      "answer": "进程是资源分配的基本单位，线程是 CPU 调度的基本单位；同一进程内线程共享地址空间。",
+      "followUp": "线程切换为什么通常比进程切换开销小？",
+      "remark": "结合实际项目中的并发场景说明。",
+      "images": [],
+      "createdAt": "2026-07-28T13:00:00+08:00",
+      "updatedAt": "2026-07-28T13:00:00+08:00"
+    }
+  ],
+  "aptitudeTests": [
+    {
+      "id": "aptitude-001",
+      "question": "某项目第一季度完成全年任务的 20%，第二季度完成剩余任务的 30%，两季度共完成全年任务的多少？",
+      "type": "数量关系",
+      "answer": "44%",
+      "analysis": "第二季度完成 80% × 30% = 24%，合计 20% + 24% = 44%。",
+      "wrongReason": "误把第二季度的 30% 直接与 20% 相加。",
+      "favorite": true,
+      "wrong": true,
+      "images": [],
+      "createdAt": "2026-07-29T18:10:00+08:00",
+      "updatedAt": "2026-07-29T18:10:00+08:00"
+    }
+  ],
+  "essays": [
+    {
+      "id": "essay-001",
+      "title": "以数字化赋能基层治理",
+      "topic": "基层治理",
+      "content": "数字化不是简单地把线下流程搬到线上，而是以群众需求为导向重塑治理流程。",
+      "goldenSentence": "治理的温度，既体现在数据奔跑的速度，也体现在服务抵达的精度。",
+      "caseStudy": "贵州探索一窗通办、跨省通办，减少群众办事成本。",
+      "remark": "可用于科技赋能、服务型政府等主题。",
+      "images": [],
+      "createdAt": "2026-07-26T16:40:00+08:00",
+      "updatedAt": "2026-07-31T10:15:00+08:00"
+    }
+  ],
+  "leetcode": [
+    {
+      "id": "leetcode-001",
+      "number": "1",
+      "name": "两数之和",
+      "problemDetail": "给定一个整数数组 nums 和一个整数目标值 target，请在数组中找出和为目标值的两个整数，并返回它们的数组下标。\n\n假设每种输入只对应一个答案，且同一个元素不能重复使用。",
+      "link": "https://leetcode.cn/problems/two-sum/",
+      "difficulty": "简单",
+      "type": "哈希表",
+      "approach": "遍历数组，用哈希表保存已经访问的值及其下标，查找目标差值。",
+      "code": "def twoSum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        if target - num in seen:\n            return [seen[target - num], i]\n        seen[num] = i",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "completed": true,
+      "review": true,
+      "images": [],
+      "createdAt": "2026-07-20T20:00:00+08:00",
+      "updatedAt": "2026-07-30T20:25:00+08:00"
+    }
+  ],
+  "mockInterviews": [
+    {
+      "id": "mock-001",
+      "question": "请用三分钟介绍一个你最有代表性的项目。",
+      "answer": "重点介绍目标检测项目中的模型改进与实验设计。",
+      "images": [],
+      "createdAt": "2026-07-27T11:00:00+08:00",
+      "updatedAt": "2026-07-27T11:00:00+08:00"
+    },
+    {
+      "id": "mock-002",
+      "question": "为什么选择我们单位和这个岗位？",
+      "answer": "从单位使命、岗位匹配、个人积累和长期发展四个角度说明，避免空泛表达。",
+      "images": [],
+      "createdAt": "2026-07-28T11:00:00+08:00",
+      "updatedAt": "2026-07-28T11:00:00+08:00"
+    }
+  ]
+}

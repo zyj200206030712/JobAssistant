@@ -1,0 +1,47 @@
+[
+  {
+    "id": "website-001",
+    "name": "牛客",
+    "category": "求职社区",
+    "url": "https://www.nowcoder.com/",
+    "remark": "查看校招信息、企业笔面经和在线题库。",
+    "createdAt": "2026-07-20T10:00:00+08:00",
+    "updatedAt": "2026-07-20T10:00:00+08:00"
+  },
+  {
+    "id": "website-002",
+    "name": "BOSS直聘",
+    "category": "综合招聘",
+    "url": "https://www.zhipin.com/",
+    "remark": "搜索社会招聘与校招岗位，直接沟通招聘方。",
+    "createdAt": "2026-07-21T10:00:00+08:00",
+    "updatedAt": "2026-07-21T10:00:00+08:00"
+  },
+  {
+    "id": "website-003",
+    "name": "智联招聘",
+    "category": "综合招聘",
+    "url": "https://www.zhaopin.com/",
+    "remark": "综合岗位搜索与校园招聘专题。",
+    "createdAt": "2026-07-22T10:00:00+08:00",
+    "updatedAt": "2026-07-22T10:00:00+08:00"
+  },
+  {
+    "id": "website-004",
+    "name": "国聘",
+    "category": "官方平台",
+    "url": "https://www.iguopin.com/",
+    "remark": "央企、国企及事业单位招聘信息。",
+    "createdAt": "2026-07-23T10:00:00+08:00",
+    "updatedAt": "2026-07-23T10:00:00+08:00"
+  },
+  {
+    "id": "website-005",
+    "name": "华为招聘",
+    "category": "企业官网",
+    "url": "https://career.huawei.com/",
+    "remark": "华为校园招聘与岗位投递官网。",
+    "createdAt": "2026-07-24T10:00:00+08:00",
+    "updatedAt": "2026-07-24T10:00:00+08:00"
+  }
+]
