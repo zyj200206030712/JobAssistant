@@ -1011,7 +1011,7 @@ button:focus-visible {
 .company-table-head,
 .company-record {
   display: grid;
-  grid-template-columns: minmax(180px, 1.35fr) minmax(140px, 1fr) minmax(108px, 0.7fr) 92px 90px 112px;
+  grid-template-columns: minmax(180px, 1.35fr) minmax(140px, 1fr) minmax(108px, 0.7fr) 92px 90px 126px 112px;
   gap: 13px;
   align-items: center;
 }
@@ -1081,19 +1081,29 @@ button:focus-visible {
 }
 
 .deadline-cell strong,
-.deadline-cell span {
+.deadline-cell span,
+.company-updated-cell strong,
+.company-updated-cell span {
   display: block;
   font-size: 9px;
 }
 
-.deadline-cell strong {
+.deadline-cell strong,
+.company-updated-cell strong {
   color: #566378;
   font-weight: 600;
 }
 
-.deadline-cell span {
+.deadline-cell span,
+.company-updated-cell span {
   margin-top: 4px;
   color: #9aa4b1;
+}
+
+.company-updated-cell {
+  min-width: 0;
+  font-style: normal;
+  white-space: nowrap;
 }
 
 .deadline-cell.urgent strong,
@@ -3373,6 +3383,7 @@ html[data-theme="dark"] .website-form-grid {
 html[data-theme="dark"] .company-record-copy strong,
 html[data-theme="dark"] .company-position-copy strong,
 html[data-theme="dark"] .company-place-copy strong,
+html[data-theme="dark"] .company-updated-cell strong,
 html[data-theme="dark"] .company-name,
 html[data-theme="dark"] .todo-copy strong,
 html[data-theme="dark"] .learning-record-title h3,
@@ -3386,6 +3397,10 @@ html[data-theme="dark"] .form-section legend,
 html[data-theme="dark"] .modal-header h2,
 html[data-theme="dark"] .confirm-panel h2 {
   color: #e4ebf5;
+}
+
+html[data-theme="dark"] .company-updated-cell span {
+  color: #95a3b7;
 }
 
 html[data-theme="dark"] .form-field > span,
@@ -3523,7 +3538,7 @@ noscript {
   .search-box { width: 100%; }
   .filter-group { justify-content: flex-end; }
   .company-table-head,
-  .company-record { grid-template-columns: minmax(175px, 1.25fr) minmax(125px, 0.9fr) 100px 82px 84px 105px; gap: 9px; }
+  .company-record { grid-template-columns: minmax(175px, 1.25fr) minmax(125px, 0.9fr) 100px 82px 84px 114px 105px; gap: 9px; }
   .learning-toolbar { flex-wrap: wrap; }
   .learning-search { width: 100%; }
   .website-toolbar { align-items: stretch; flex-direction: column; }
@@ -3571,6 +3586,8 @@ noscript {
 .company-place-copy span,
 .deadline-cell strong,
 .deadline-cell span,
+.company-updated-cell strong,
+.company-updated-cell span,
 .form-section legend span,
 .field-error,
 .random-question-label,

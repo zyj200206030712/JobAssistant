@@ -305,9 +305,9 @@ const LEARNING_FIELD_SCHEMAS = {
     { key: "number", label: "题目编号", type: "text", required: true, placeholder: "例如：1" },
     { key: "name", label: "名称", type: "text", required: true, placeholder: "例如：两数之和" },
     { key: "problemDetail", label: "题目详情", type: "textarea", required: true, span: 2, rows: 7, placeholder: "输入题目描述、输入输出、示例和约束条件" },
-    { key: "link", label: "LeetCode 链接", type: "url", required: true, span: 2, placeholder: "https://leetcode.cn/problems/..." },
-    { key: "difficulty", label: "难度", type: "select", required: true, options: ["简单", "中等", "困难"] },
-    { key: "type", label: "类型", type: "text", required: true, placeholder: "例如：哈希表、动态规划" },
+    { key: "link", label: "LeetCode 链接", type: "url", span: 2, placeholder: "https://leetcode.cn/problems/...（选填）" },
+    { key: "difficulty", label: "难度", type: "select", options: ["简单", "中等", "困难"] },
+    { key: "type", label: "类型", type: "text", placeholder: "例如：哈希表、动态规划（选填）" },
     { key: "approach", label: "解题思路", type: "textarea", span: 2, placeholder: "核心思路与步骤" },
     { key: "code", label: "Python 代码", type: "code", span: 2, placeholder: "def solution(...):" },
     { key: "timeComplexity", label: "时间复杂度", type: "text", placeholder: "例如：O(n)" },
@@ -923,7 +923,14 @@ async function loadLearningData() {
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
         throw new Error("本机学习数据的顶层结构无效");
       }
-      state.learningStorageAuthoritative = true;
+      const learningKeys = Object.keys(LEARNING_FIELD_SCHEMAS);
+      if (!learningKeys.some((key) => Array.isArray(parsed[key]))) {
+        throw new Error("本机学习数据中没有可识别的学习模块");
+      }
+      state.learningStorageAuthoritative = isAuthoritativeLearningData(parsed);
+      if (!state.learningStorageAuthoritative) {
+        console.warn("本机学习数据不完整，将保留图片库并跳过无主图片清理。");
+      }
       return normalizeLearningData(parsed);
     } catch (error) {
       console.warn("本地学习数据无法解析，将读取初始数据。", error);
@@ -943,6 +950,20 @@ async function loadLearningData() {
   }
 
   return normalizeLearningData(FALLBACK_LEARNING);
+}
+
+function isAuthoritativeLearningData(data) {
+  return Object.keys(LEARNING_FIELD_SCHEMAS).every((key) => (
+    Array.isArray(data?.[key]) && data[key].every((record) => {
+      if (!record || typeof record !== "object" || Array.isArray(record) || !String(record.id || "").trim()) {
+        return false;
+      }
+      if (record.images === undefined) return true;
+      return Array.isArray(record.images) && record.images.every((image) => (
+        image && typeof image === "object" && !Array.isArray(image) && String(image.id || "").trim()
+      ));
+    })
+  ));
 }
 
 async function loadWebsites() {
@@ -1692,6 +1713,7 @@ function renderCompanyManagement() {
   container.innerHTML = companies.map((item, index) => {
     const link = getPreferredCompanyLink(item);
     const deadline = getDeadlineInfo(item.deadline);
+    const updated = getCompanyUpdatedInfo(item.updatedAt);
     const themes = [
       ["#2b67d9", "#e9f1ff"],
       ["#7a52c7", "#f1ebff"],
@@ -1722,6 +1744,10 @@ function renderCompanyManagement() {
           <strong>${escapeHtml(deadline.dateText)}</strong>
           <span>${escapeHtml(deadline.relativeText)}</span>
         </div>
+        <time class="company-updated-cell"${updated.dateTime ? ` datetime="${escapeHtml(updated.dateTime)}"` : ""} title="${escapeHtml(updated.title)}">
+          <strong>${escapeHtml(updated.dateText)}</strong>
+          <span>${escapeHtml(updated.timeText)}</span>
+        </time>
         <div class="record-actions">
           ${link
             ? `<a class="record-action" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" title="打开招聘链接" aria-label="打开 ${escapeHtml(item.company)} 招聘链接">链</a>`
@@ -2011,6 +2037,41 @@ function getDeadlineInfo(dateText) {
     dateText: `${date.getMonth() + 1} 月 ${date.getDate()} 日`,
     relativeText: days < 0 ? "已截止" : days === 0 ? "今天截止" : `${days} 天后`,
     urgent: days >= 0 && days <= 7
+  };
+}
+
+function getCompanyUpdatedInfo(value) {
+  if (!value) {
+    return {
+      dateText: "尚未记录",
+      timeText: "编辑后显示",
+      dateTime: "",
+      title: "该企业尚无最近修改时间，编辑并保存后会自动记录"
+    };
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return {
+      dateText: "时间未知",
+      timeText: "—",
+      dateTime: "",
+      title: "最近修改时间格式无效"
+    };
+  }
+  const dateText = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
+  ].join("-");
+  const timeText = [
+    String(date.getHours()).padStart(2, "0"),
+    String(date.getMinutes()).padStart(2, "0")
+  ].join(":");
+  return {
+    dateText,
+    timeText,
+    dateTime: date.toISOString(),
+    title: `最近修改：${dateText} ${timeText}`
   };
 }
 
