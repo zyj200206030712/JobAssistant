@@ -1741,9 +1741,8 @@ function renderCompanyManagement() {
           <span>${escapeHtml(item.batch || "批次待定")}</span>
         </div>
         <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "状态待定")}</span>
-        <div class="company-note-cell" title="${escapeHtml(preferredRemark.title)}">
-          <strong>${escapeHtml(preferredRemark.label)}</strong>
-          <span>${escapeHtml(preferredRemark.text)}</span>
+        <div class="company-note-cell" title="${escapeHtml(preferredRemark)}">
+          <span>${escapeHtml(preferredRemark)}</span>
         </div>
         <time class="company-updated-cell"${updated.dateTime ? ` datetime="${escapeHtml(updated.dateTime)}"` : ""} title="${escapeHtml(updated.title)}">
           <strong>${escapeHtml(updated.dateText)}</strong>
@@ -2013,26 +2012,9 @@ function getPreferredCompanyLink(company) {
 
 function getPreferredCompanyRemark(company) {
   const applicationRemark = String(company?.remark || "").trim();
-  if (applicationRemark) {
-    return {
-      label: "投递备注",
-      text: applicationRemark,
-      title: `投递备注：${applicationRemark}`
-    };
-  }
+  if (applicationRemark) return applicationRemark;
   const companyRemark = String(company?.companyRemark || "").trim();
-  if (companyRemark) {
-    return {
-      label: "企业备注",
-      text: companyRemark,
-      title: `企业备注：${companyRemark}`
-    };
-  }
-  return {
-    label: "暂无备注",
-    text: "—",
-    title: "暂无投递备注或企业备注"
-  };
+  return companyRemark || "—";
 }
 
 function isHttpUrl(value) {

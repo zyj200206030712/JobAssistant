@@ -1107,24 +1107,20 @@ button:focus-visible {
   min-width: 0;
 }
 
-.company-note-cell strong,
 .company-note-cell span {
-  display: block;
+  display: -webkit-box;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
-.company-note-cell strong {
+.company-note-cell span {
   color: #566378;
   font-size: 9px;
-  font-weight: 600;
-}
-
-.company-note-cell span {
-  margin-top: 4px;
-  color: #8c97a7;
-  font-size: 9px;
+  line-height: 1.45;
 }
 
 .record-actions {
@@ -3399,7 +3395,6 @@ html[data-theme="dark"] .website-form-grid {
 html[data-theme="dark"] .company-record-copy strong,
 html[data-theme="dark"] .company-position-copy strong,
 html[data-theme="dark"] .company-place-copy strong,
-html[data-theme="dark"] .company-note-cell strong,
 html[data-theme="dark"] .company-updated-cell strong,
 html[data-theme="dark"] .company-name,
 html[data-theme="dark"] .todo-copy strong,
@@ -3605,7 +3600,6 @@ noscript {
 .company-record-copy span,
 .company-position-copy span,
 .company-place-copy span,
-.company-note-cell strong,
 .company-note-cell span,
 .company-updated-cell strong,
 .company-updated-cell span,
