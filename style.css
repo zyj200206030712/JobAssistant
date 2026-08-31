@@ -652,6 +652,7 @@ button:focus-visible {
 
 .status-applied { color: #3e5ccc; background: #edf0ff; }
 .status-pending { color: #c47716; background: #fff5e4; }
+.status-uninterested { color: #596579; background: #e9edf2; }
 .status-interview { color: #7250c3; background: #f2edff; }
 .status-offer { color: #078658; background: #e7f8f1; }
 .status-default { color: #667386; background: #f0f3f6; }
@@ -1011,7 +1012,7 @@ button:focus-visible {
 .company-table-head,
 .company-record {
   display: grid;
-  grid-template-columns: minmax(180px, 1.35fr) minmax(140px, 1fr) minmax(108px, 0.7fr) 92px 90px 126px 112px;
+  grid-template-columns: minmax(170px, 1.25fr) minmax(130px, 0.9fr) minmax(100px, 0.65fr) 86px minmax(150px, 1fr) 118px 105px;
   gap: 13px;
   align-items: center;
 }
@@ -1080,21 +1081,17 @@ button:focus-visible {
   color: #69778d !important;
 }
 
-.deadline-cell strong,
-.deadline-cell span,
 .company-updated-cell strong,
 .company-updated-cell span {
   display: block;
   font-size: 9px;
 }
 
-.deadline-cell strong,
 .company-updated-cell strong {
   color: #566378;
   font-weight: 600;
 }
 
-.deadline-cell span,
 .company-updated-cell span {
   margin-top: 4px;
   color: #9aa4b1;
@@ -1106,9 +1103,28 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.deadline-cell.urgent strong,
-.deadline-cell.urgent span {
-  color: #d44d5a;
+.company-note-cell {
+  min-width: 0;
+}
+
+.company-note-cell strong,
+.company-note-cell span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-note-cell strong {
+  color: #566378;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.company-note-cell span {
+  margin-top: 4px;
+  color: #8c97a7;
+  font-size: 9px;
 }
 
 .record-actions {
@@ -3383,6 +3399,7 @@ html[data-theme="dark"] .website-form-grid {
 html[data-theme="dark"] .company-record-copy strong,
 html[data-theme="dark"] .company-position-copy strong,
 html[data-theme="dark"] .company-place-copy strong,
+html[data-theme="dark"] .company-note-cell strong,
 html[data-theme="dark"] .company-updated-cell strong,
 html[data-theme="dark"] .company-name,
 html[data-theme="dark"] .todo-copy strong,
@@ -3400,6 +3417,10 @@ html[data-theme="dark"] .confirm-panel h2 {
 }
 
 html[data-theme="dark"] .company-updated-cell span {
+  color: #95a3b7;
+}
+
+html[data-theme="dark"] .company-note-cell span {
   color: #95a3b7;
 }
 
@@ -3538,7 +3559,7 @@ noscript {
   .search-box { width: 100%; }
   .filter-group { justify-content: flex-end; }
   .company-table-head,
-  .company-record { grid-template-columns: minmax(175px, 1.25fr) minmax(125px, 0.9fr) 100px 82px 84px 114px 105px; gap: 9px; }
+  .company-record { grid-template-columns: minmax(165px, 1.15fr) minmax(115px, 0.8fr) 92px 78px minmax(130px, 0.85fr) 106px 96px; gap: 9px; }
   .learning-toolbar { flex-wrap: wrap; }
   .learning-search { width: 100%; }
   .website-toolbar { align-items: stretch; flex-direction: column; }
@@ -3584,8 +3605,8 @@ noscript {
 .company-record-copy span,
 .company-position-copy span,
 .company-place-copy span,
-.deadline-cell strong,
-.deadline-cell span,
+.company-note-cell strong,
+.company-note-cell span,
 .company-updated-cell strong,
 .company-updated-cell span,
 .form-section legend span,

@@ -423,6 +423,7 @@ const state = {
 
 const INTERVIEW_STATUSES = new Set(["笔试", "一面", "二面", "终面"]);
 const ACTIONED_STATUSES = new Set(["已投递", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
+const DEADLINE_EXCLUDED_STATUSES = new Set(["Offer", "未通过", "不感兴趣"]);
 const COMPANY_CATEGORIES = new Set(["央国企", "研究所", "私企", "外企"]);
 const RESEARCH_INSTITUTE_NAME_PATTERN = /(研究所|研究院|科学院|院所)/;
 const COMPANY_SEARCH_FIELDS = Object.freeze([
@@ -1712,7 +1713,7 @@ function renderCompanyManagement() {
 
   container.innerHTML = companies.map((item, index) => {
     const link = getPreferredCompanyLink(item);
-    const deadline = getDeadlineInfo(item.deadline);
+    const preferredRemark = getPreferredCompanyRemark(item);
     const updated = getCompanyUpdatedInfo(item.updatedAt);
     const themes = [
       ["#2b67d9", "#e9f1ff"],
@@ -1739,10 +1740,10 @@ function renderCompanyManagement() {
           <strong>${escapeHtml(item.location || "地点待定")}</strong>
           <span>${escapeHtml(item.batch || "批次待定")}</span>
         </div>
-        <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "未关注")}</span>
-        <div class="deadline-cell ${deadline.urgent ? "urgent" : ""}">
-          <strong>${escapeHtml(deadline.dateText)}</strong>
-          <span>${escapeHtml(deadline.relativeText)}</span>
+        <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "状态待定")}</span>
+        <div class="company-note-cell" title="${escapeHtml(preferredRemark.title)}">
+          <strong>${escapeHtml(preferredRemark.label)}</strong>
+          <span>${escapeHtml(preferredRemark.text)}</span>
         </div>
         <time class="company-updated-cell"${updated.dateTime ? ` datetime="${escapeHtml(updated.dateTime)}"` : ""} title="${escapeHtml(updated.title)}">
           <strong>${escapeHtml(updated.dateText)}</strong>
@@ -1836,8 +1837,6 @@ function openCompanyModal(company = null) {
     document.getElementById("companyCategory").value = state.companyFilters.category === "全部"
       ? ""
       : state.companyFilters.category;
-    document.getElementById("recruitmentBatch").value = "正式批";
-    document.getElementById("applicationStatus").value = "未关注";
   }
 
   document.getElementById("companyModal").hidden = false;
@@ -1899,12 +1898,7 @@ function validateCompanyForm() {
   clearAllFormErrors();
   let valid = true;
   const requiredFields = [
-    ["companyName", "请输入企业名称"],
-    ["companyCategory", "请选择企业分类"],
-    ["companyLocation", "请输入工作地点"],
-    ["positionName", "请输入岗位名称"],
-    ["recruitmentBatch", "请选择招聘批次"],
-    ["applicationStatus", "请选择投递状态"]
+    ["companyName", "请输入企业名称"]
   ];
 
   requiredFields.forEach(([id, message]) => {
@@ -2017,6 +2011,30 @@ function getPreferredCompanyLink(company) {
     .find((value) => isHttpUrl(value)) || "";
 }
 
+function getPreferredCompanyRemark(company) {
+  const applicationRemark = String(company?.remark || "").trim();
+  if (applicationRemark) {
+    return {
+      label: "投递备注",
+      text: applicationRemark,
+      title: `投递备注：${applicationRemark}`
+    };
+  }
+  const companyRemark = String(company?.companyRemark || "").trim();
+  if (companyRemark) {
+    return {
+      label: "企业备注",
+      text: companyRemark,
+      title: `企业备注：${companyRemark}`
+    };
+  }
+  return {
+    label: "暂无备注",
+    text: "—",
+    title: "暂无投递备注或企业备注"
+  };
+}
+
 function isHttpUrl(value) {
   if (!value) return false;
   try {
@@ -2025,19 +2043,6 @@ function isHttpUrl(value) {
   } catch {
     return false;
   }
-}
-
-function getDeadlineInfo(dateText) {
-  const date = parseLocalDate(dateText);
-  if (!date) return { dateText: "未设置", relativeText: "—", urgent: false };
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const days = Math.ceil((date - today) / 86400000);
-  return {
-    dateText: `${date.getMonth() + 1} 月 ${date.getDate()} 日`,
-    relativeText: days < 0 ? "已截止" : days === 0 ? "今天截止" : `${days} 天后`,
-    urgent: days >= 0 && days <= 7
-  };
 }
 
 function getCompanyUpdatedInfo(value) {
@@ -3637,13 +3642,15 @@ function prepareImportData(data) {
 function normalizeImportedCompanies(records) {
   if (!Array.isArray(records)) throw new Error("companies 必须是数组");
   const validBatches = new Set(["提前批", "正式批", "补录", "其他"]);
-  const validStatuses = new Set(["未关注", "待投递", "已投递", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
+  const validStatuses = new Set(["未开启", "未关注", "不感兴趣", "待投递", "已投递", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
   return records.map((record, index) => {
     if (!record || typeof record !== "object" || !String(record.company || "").trim()) {
       throw new Error(`第 ${index + 1} 条企业记录缺少企业名称`);
     }
     const category = resolveCompanyCategory(record);
-    if (!COMPANY_CATEGORIES.has(category)) throw new Error(`“${record.company}”的企业分类无效`);
+    if (category && !COMPANY_CATEGORIES.has(category)) throw new Error(`“${record.company}”的企业分类无效`);
+    const batch = String(record.batch || "").trim();
+    const status = String(record.status || "").trim();
     const now = new Date().toISOString();
     return {
       id: String(record.id || createId("company")),
@@ -3655,8 +3662,8 @@ function normalizeImportedCompanies(records) {
       companyRemark: String(record.companyRemark || "").trim(),
       position: String(record.position || "").trim(),
       direction: String(record.direction || "").trim(),
-      batch: validBatches.has(record.batch) ? record.batch : "其他",
-      status: validStatuses.has(record.status) ? record.status : "未关注",
+      batch: !batch || validBatches.has(batch) ? batch : "其他",
+      status: !status || validStatuses.has(status) ? status : "未关注",
       applyDate: String(record.applyDate || "").trim(),
       deadline: String(record.deadline || "").trim(),
       positionUrl: String(record.positionUrl || record.url || "").trim(),
@@ -4017,7 +4024,7 @@ function renderRecentCompanies(companies) {
         <strong class="company-name" title="${escapeHtml(item.company)}">${escapeHtml(item.company || "未命名企业")}</strong>
         <span class="company-position" title="${escapeHtml(item.position)}">${escapeHtml(item.position || "岗位待定")}</span>
         <span class="company-location">${escapeHtml(item.location || "地点待定")}</span>
-        <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "未关注")}</span>
+        <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "状态待定")}</span>
       </article>`;
   }).join("");
 }
@@ -4050,7 +4057,7 @@ function createTodos(companies) {
 
   companies.forEach((item) => {
     const deadline = parseLocalDate(item.deadline);
-    if (deadline && item.status !== "Offer" && item.status !== "未通过") {
+    if (deadline && !DEADLINE_EXCLUDED_STATUSES.has(item.status)) {
       const days = Math.ceil((deadline - now) / 86400000);
       if (days >= 0 && days <= 30) {
         todos.push({
@@ -4108,6 +4115,7 @@ function getCompanyInitial(name = "") {
 function getStatusClass(status) {
   if (status === "已投递") return "status-applied";
   if (status === "待投递") return "status-pending";
+  if (status === "不感兴趣") return "status-uninterested";
   if (INTERVIEW_STATUSES.has(status)) return "status-interview";
   if (status === "Offer") return "status-offer";
   return "status-default";

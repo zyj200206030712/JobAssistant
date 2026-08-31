@@ -257,6 +257,7 @@
                   <select id="statusFilter">
                     <option value="全部">全部状态</option>
                     <option value="未开启">未开启</option>
+                    <option value="不感兴趣">不感兴趣</option>
                     <option value="待投递">待投递</option>
                     <option value="已投递">已投递</option>
                     <option value="笔试">笔试</option>
@@ -282,7 +283,7 @@
                 <span>目标岗位</span>
                 <span>地点 / 批次</span>
                 <span>当前状态</span>
-                <span>截止日期</span>
+                <span>备注</span>
                 <span>最近修改</span>
                 <span>操作</span>
               </div>
@@ -313,9 +314,9 @@
                     <small class="field-error"></small>
                   </label>
                   <label class="form-field">
-                    <span>企业分类 <em>*</em></span>
-                    <select id="companyCategory" name="category" required>
-                      <option value="">请选择分类</option>
+                    <span>企业分类</span>
+                    <select id="companyCategory" name="category">
+                      <option value="">请选择分类（选填）</option>
                       <option value="央国企">央国企</option>
                       <option value="研究所">研究所</option>
                       <option value="私企">私企</option>
@@ -324,8 +325,8 @@
                     <small class="field-error"></small>
                   </label>
                   <label class="form-field">
-                    <span>工作地点 <em>*</em></span>
-                    <input id="companyLocation" name="location" type="text" maxlength="50" placeholder="例如：北京、贵阳" required>
+                    <span>工作地点</span>
+                    <input id="companyLocation" name="location" type="text" maxlength="50" placeholder="例如：北京、贵阳（选填）">
                     <small class="field-error"></small>
                   </label>
                   <label class="form-field">
@@ -350,8 +351,8 @@
                 <legend><span>02</span> 投递信息</legend>
                 <div class="form-grid">
                   <label class="form-field">
-                    <span>岗位名称 <em>*</em></span>
-                    <input id="positionName" name="position" type="text" maxlength="80" placeholder="例如：算法工程师" required>
+                    <span>岗位名称</span>
+                    <input id="positionName" name="position" type="text" maxlength="80" placeholder="例如：算法工程师（选填）">
                     <small class="field-error"></small>
                   </label>
                   <label class="form-field">
@@ -360,9 +361,9 @@
                     <small class="field-error"></small>
                   </label>
                   <label class="form-field">
-                    <span>招聘批次 <em>*</em></span>
-                    <select id="recruitmentBatch" name="batch" required>
-                      <option value="">请选择批次</option>
+                    <span>招聘批次</span>
+                    <select id="recruitmentBatch" name="batch">
+                      <option value="">请选择批次（选填）</option>
                       <option value="提前批">提前批</option>
                       <option value="正式批">正式批</option>
                       <option value="补录">补录</option>
@@ -371,10 +372,11 @@
                     <small class="field-error"></small>
                   </label>
                   <label class="form-field">
-                    <span>投递状态 <em>*</em></span>
-                    <select id="applicationStatus" name="status" required>
-                      <option value="">请选择状态</option>
+                    <span>投递状态</span>
+                    <select id="applicationStatus" name="status">
+                      <option value="">请选择状态（选填）</option>
                       <option value="未开启">未开启</option>
+                      <option value="不感兴趣">不感兴趣</option>
                       <option value="待投递">待投递</option>
                       <option value="已投递">已投递</option>
                       <option value="笔试">笔试</option>
