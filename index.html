@@ -235,7 +235,7 @@
             </button>
           </div>
 
-          <section class="company-workspace" aria-label="企业列表">
+          <section class="company-workspace" aria-label="企业管理工作区">
             <div class="company-toolbar">
               <label class="search-box" for="companySearch">
                 <span aria-hidden="true">⌕</span>
@@ -272,22 +272,33 @@
               </div>
             </div>
 
-            <div class="company-list-meta">
-              <span id="companyResultCount">共 0 家企业</span>
-              <span>按最近更新排序</span>
-            </div>
+            <div class="company-content-layout">
+              <section class="company-list-pane" aria-label="企业列表">
+                <div class="company-list-meta">
+                  <span id="companyResultCount">共 0 家企业</span>
+                  <span>按最近更新排序</span>
+                </div>
 
-            <div class="company-table-wrap">
-              <div class="company-table-head" aria-hidden="true">
-                <span>企业信息</span>
-                <span>目标岗位</span>
-                <span>地点 / 批次</span>
-                <span>当前状态</span>
-                <span>备注</span>
-                <span>最近修改</span>
-                <span>操作</span>
-              </div>
-              <div id="companyList" class="company-records"></div>
+                <div class="company-table-wrap">
+                  <div class="company-table-head" aria-hidden="true">
+                    <span>企业信息</span>
+                    <span>目标岗位</span>
+                    <span>当前状态</span>
+                    <span>备注</span>
+                    <span>最近修改</span>
+                    <span>操作</span>
+                  </div>
+                  <div id="companyList" class="company-records"></div>
+                </div>
+              </section>
+
+              <aside class="company-detail-panel" id="companyDetailPanel" aria-label="企业完整详情" aria-live="polite">
+                <div class="company-detail-empty">
+                  <span aria-hidden="true">详</span>
+                  <strong>查看企业详情</strong>
+                  <p>点击左侧企业，完整信息将在这里显示。</p>
+                </div>
+              </aside>
             </div>
           </section>
         </section>
