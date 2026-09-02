@@ -280,7 +280,7 @@ const LEARNING_FIELD_SCHEMAS = {
   ],
   interviewKnowledge: [
     { key: "question", label: "面试问题", type: "textarea", required: true, span: 2, placeholder: "记录一个高频面试问题" },
-    { key: "answer", label: "标准答案", type: "textarea", required: true, span: 2, placeholder: "结构清晰的参考答案" },
+    { key: "answer", label: "标准答案", type: "textarea", required: true, span: 2, rows: 10, placeholder: "结构清晰的参考答案" },
     { key: "followUp", label: "追问", type: "textarea", placeholder: "可能的深入追问" },
     { key: "remark", label: "备注", type: "textarea", placeholder: "易错点或回答提示" }
   ],
@@ -385,6 +385,7 @@ const state = {
     status: "全部",
     search: ""
   },
+  selectedCompanyId: null,
   pendingDeleteId: null,
   activeLearningModule: "projectHub",
   activeLearningDataset: "projects",
@@ -559,6 +560,8 @@ function bindCompanyManagement() {
   document.getElementById("resetCompanyFilters").addEventListener("click", resetCompanyFilters);
   document.getElementById("companyForm").addEventListener("submit", handleCompanySubmit);
   document.getElementById("companyList").addEventListener("click", handleCompanyListClick);
+  document.getElementById("companyList").addEventListener("keydown", handleCompanyListKeydown);
+  document.getElementById("companyDetailPanel").addEventListener("click", handleCompanyDetailAction);
 
   document.querySelectorAll("[data-close-company-modal]").forEach((button) => {
     button.addEventListener("click", closeCompanyModal);
@@ -1034,10 +1037,17 @@ function normalizeLearningRecordImages(record) {
   const source = record && typeof record === "object" ? record : {};
   return {
     ...source,
+    encounterCount: normalizeEncounterCount(source.encounterCount),
     images: Array.isArray(source.images)
       ? source.images.map(normalizeImageMetadata).filter(Boolean)
       : []
   };
+}
+
+function normalizeEncounterCount(value) {
+  const count = Number(value);
+  if (!Number.isFinite(count) || count <= 0) return 0;
+  return Math.min(Math.floor(count), Number.MAX_SAFE_INTEGER);
 }
 
 function normalizeImageMetadata(image) {
@@ -1705,9 +1715,14 @@ function renderCompanyManagement() {
   const container = document.getElementById("companyList");
   document.getElementById("companyResultCount").textContent = `共 ${companies.length} 家企业`;
 
+  if (state.selectedCompanyId && !companies.some((item) => item.id === state.selectedCompanyId)) {
+    state.selectedCompanyId = null;
+  }
+
   if (!companies.length) {
     const message = state.companies.length ? "没有符合当前条件的企业" : "暂无企业记录，点击“新增企业”开始添加";
     container.innerHTML = emptyState(message, "企");
+    renderCompanyDetailPanel();
     return;
   }
 
@@ -1723,8 +1738,9 @@ function renderCompanyManagement() {
     ];
     const [color, background] = themes[index % themes.length];
     const safeId = escapeHtml(item.id || "");
+    const selected = item.id === state.selectedCompanyId;
     return `
-      <article class="company-record" data-company-id="${safeId}">
+      <article class="company-record ${selected ? "selected" : ""}" data-company-id="${safeId}" data-company-view tabindex="0" aria-current="${selected}" aria-label="查看 ${escapeHtml(item.company || "未命名企业")} 的完整详情">
         <div class="company-record-main">
           <span class="company-avatar" style="--avatar-color:${color};--avatar-bg:${background}">${escapeHtml(getCompanyInitial(item.company))}</span>
           <div class="company-record-copy">
@@ -1735,10 +1751,6 @@ function renderCompanyManagement() {
         <div class="company-position-copy">
           <strong title="${escapeHtml(item.position)}">${escapeHtml(item.position || "岗位待定")}</strong>
           <span>${escapeHtml(item.direction || "方向待定")}</span>
-        </div>
-        <div class="company-place-copy">
-          <strong>${escapeHtml(item.location || "地点待定")}</strong>
-          <span>${escapeHtml(item.batch || "批次待定")}</span>
         </div>
         <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "状态待定")}</span>
         <div class="company-note-cell" title="${escapeHtml(preferredRemark)}">
@@ -1757,6 +1769,96 @@ function renderCompanyManagement() {
         </div>
       </article>`;
   }).join("");
+  renderCompanyDetailPanel();
+}
+
+function renderCompanyDetailPanel() {
+  const panel = document.getElementById("companyDetailPanel");
+  const company = state.companies.find((item) => item.id === state.selectedCompanyId);
+  if (!company) {
+    panel.innerHTML = `
+      <div class="company-detail-empty">
+        <span aria-hidden="true">详</span>
+        <strong>查看企业详情</strong>
+        <p>点击左侧企业，完整信息将在这里显示。</p>
+      </div>`;
+    return;
+  }
+
+  const safeId = escapeHtml(company.id || "");
+  const preferredLink = getPreferredCompanyLink(company);
+  panel.innerHTML = `
+    <header class="company-detail-header">
+      <span class="company-avatar" style="--avatar-color:#2b67d9;--avatar-bg:#e9f1ff">${escapeHtml(getCompanyInitial(company.company))}</span>
+      <div>
+        <p>Company detail</p>
+        <h3>${escapeHtml(company.company || "未命名企业")}</h3>
+        <div class="company-detail-tags">
+          <span>${escapeHtml(company.category || "未分类")}</span>
+          <span class="status-pill ${getStatusClass(company.status)}">${escapeHtml(company.status || "状态待定")}</span>
+        </div>
+      </div>
+    </header>
+    <div class="company-detail-actions">
+      <button class="secondary-button" type="button" data-company-detail-action="edit" data-company-id="${safeId}">编辑企业</button>
+      ${preferredLink
+        ? `<a class="secondary-button" href="${escapeHtml(preferredLink)}" target="_blank" rel="noopener noreferrer">打开招聘链接</a>`
+        : `<span class="secondary-button disabled" aria-disabled="true">暂无招聘链接</span>`}
+    </div>
+    <section class="company-detail-section">
+      <h4>企业信息</h4>
+      <dl class="company-detail-grid">
+        ${renderCompanyDetailField("企业名称", company.company)}
+        ${renderCompanyDetailField("企业分类", company.category)}
+        ${renderCompanyDetailField("地点", company.location)}
+        ${renderCompanyDetailField("企业信息来源 / 官网", company.companyUrl, true, true)}
+        ${renderCompanyDetailField("招聘网址", company.recruitmentUrl, true, true)}
+        ${renderCompanyDetailField("企业备注", company.companyRemark, false, true)}
+      </dl>
+    </section>
+    <section class="company-detail-section">
+      <h4>岗位与投递</h4>
+      <dl class="company-detail-grid">
+        ${renderCompanyDetailField("岗位", company.position)}
+        ${renderCompanyDetailField("方向", company.direction)}
+        ${renderCompanyDetailField("批次", company.batch)}
+        ${renderCompanyDetailField("状态", company.status)}
+        ${renderCompanyDetailField("投递日期", company.applyDate)}
+        ${renderCompanyDetailField("截止日期", company.deadline)}
+        ${renderCompanyDetailField("投递状态链接", company.positionUrl, true, true)}
+        ${renderCompanyDetailField("投递备注", company.remark, false, true)}
+      </dl>
+    </section>
+    <section class="company-detail-section company-detail-system-section">
+      <h4>记录信息</h4>
+      <dl class="company-detail-grid">
+        ${renderCompanyDetailField("创建时间", formatCompanyDetailTimestamp(company.createdAt), false, true)}
+        ${renderCompanyDetailField("最近修改", formatCompanyDetailTimestamp(company.updatedAt), false, true)}
+      </dl>
+    </section>`;
+}
+
+function renderCompanyDetailField(label, value, link = false, wide = false) {
+  const text = String(value || "").trim();
+  const content = link && isHttpUrl(text)
+    ? `<a href="${escapeHtml(text)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`
+    : `<span>${escapeHtml(text || "—")}</span>`;
+  return `<div class="company-detail-field ${wide ? "wide" : ""}"><dt>${escapeHtml(label)}</dt><dd>${content}</dd></div>`;
+}
+
+function formatCompanyDetailTimestamp(value) {
+  if (!value) return "尚未记录";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "时间未知";
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(date);
 }
 
 function renderCategoryCounts() {
@@ -1796,13 +1898,46 @@ function resetCompanyFilters() {
 }
 
 function handleCompanyListClick(event) {
-  const actionButton = event.target.closest("[data-company-action]");
-  if (!actionButton) return;
-  const company = state.companies.find((item) => item.id === actionButton.dataset.companyId);
+  const recordElement = event.target.closest(".company-record");
+  if (!recordElement) return;
+  const company = state.companies.find((item) => item.id === recordElement.dataset.companyId);
   if (!company) return;
 
-  if (actionButton.dataset.companyAction === "edit") openCompanyModal(company);
-  if (actionButton.dataset.companyAction === "delete") openDeleteModal(company);
+  const actionButton = event.target.closest("[data-company-action]");
+  if (actionButton) {
+    if (actionButton.dataset.companyAction === "edit") openCompanyModal(company);
+    if (actionButton.dataset.companyAction === "delete") openDeleteModal(company);
+    return;
+  }
+  if (event.target.closest("a, button")) return;
+  selectCompany(company.id);
+}
+
+function handleCompanyListKeydown(event) {
+  if (!["Enter", " "].includes(event.key)) return;
+  const recordElement = event.target.closest(".company-record");
+  if (!recordElement || event.target !== recordElement) return;
+  event.preventDefault();
+  selectCompany(recordElement.dataset.companyId);
+}
+
+function selectCompany(companyId) {
+  if (!state.companies.some((item) => item.id === companyId)) return;
+  state.selectedCompanyId = companyId;
+  document.querySelectorAll("#companyList .company-record").forEach((record) => {
+    const selected = record.dataset.companyId === companyId;
+    record.classList.toggle("selected", selected);
+    record.setAttribute("aria-current", String(selected));
+  });
+  renderCompanyDetailPanel();
+}
+
+function handleCompanyDetailAction(event) {
+  const button = event.target.closest("[data-company-detail-action]");
+  if (!button) return;
+  const company = state.companies.find((item) => item.id === button.dataset.companyId);
+  if (!company) return;
+  if (button.dataset.companyDetailAction === "edit") openCompanyModal(company);
 }
 
 function openCompanyModal(company = null) {
@@ -2187,6 +2322,7 @@ function getFilteredLearningRecords(dataset) {
 function renderLearningCard(dataset, record) {
   const view = getLearningCardView(dataset, record);
   const safeId = escapeHtml(record.id || "");
+  const encounterCount = normalizeEncounterCount(record.encounterCount);
   const commonData = `data-learning-dataset="${dataset}" data-learning-id="${safeId}"`;
   const detailLabels = {
     projects: `查看项目详情：${record.name || "未命名项目"}`,
@@ -2226,6 +2362,13 @@ function renderLearningCard(dataset, record) {
           ${specialActions.join("")}
           <button class="learning-card-action" type="button" data-learning-action="edit" ${commonData} title="编辑">编</button>
           <button class="learning-card-action delete" type="button" data-learning-action="delete" ${commonData} title="删除">删</button>
+          <details class="learning-encounter-control">
+            <summary class="learning-encounter-badge" data-learning-action="encounter-menu" ${commonData} title="遇到次数：${encounterCount}，点击调整" aria-label="遇到次数 ${encounterCount}，点击调整">${encounterCount}</summary>
+            <div class="learning-encounter-menu" role="group" aria-label="调整遇到次数">
+              <button type="button" data-learning-action="encounter-decrement" ${commonData} ${encounterCount === 0 ? "disabled" : ""} aria-label="遇到次数减一">−1</button>
+              <button type="button" data-learning-action="encounter-increment" ${commonData} ${encounterCount === Number.MAX_SAFE_INTEGER ? "disabled" : ""} aria-label="遇到次数加一">+1</button>
+            </div>
+          </details>
         </div>
       </div>
       <p class="learning-record-summary">${escapeHtml(view.summary || "暂未填写详细内容")}</p>
@@ -2311,7 +2454,7 @@ function getDatasetDisplayName(dataset) {
 function handleLearningRecordAction(event) {
   const target = event.target.closest("[data-learning-action]");
   if (!target) {
-    if (event.target.closest("a, button, input, select, textarea")) return;
+    if (event.target.closest("a, button, input, select, textarea, details, summary")) return;
     const detailCard = event.target.closest("[data-learning-view]");
     if (detailCard?.dataset.learningView === "aptitudeTests") openAptitudeDetail(detailCard.dataset.learningId);
     else if (detailCard?.dataset.learningView === "leetcode") openLeetcodeDetail(detailCard.dataset.learningId);
@@ -2327,6 +2470,8 @@ function handleLearningRecordAction(event) {
   const action = target.dataset.learningAction;
   if (action === "edit") openLearningModal(record, dataset);
   else if (action === "delete") openLearningDeleteModal(record, dataset);
+  else if (action === "encounter-increment") updateLearningEncounterCount(dataset, record.id, 1);
+  else if (action === "encounter-decrement") updateLearningEncounterCount(dataset, record.id, -1);
   else if (["favorite", "wrong", "completed", "review"].includes(action)) toggleLearningFlag(dataset, record.id, action);
 }
 
@@ -2356,6 +2501,28 @@ function toggleLearningFlag(dataset, recordId, field) {
   if (dataset === "aptitudeTests" && state.activeAptitudeDetailId === recordId) renderAptitudeDetail();
   if (dataset === "leetcode" && state.activeLeetcodeDetailId === recordId) renderLeetcodeDetail();
   showToast("学习标记已更新");
+}
+
+function updateLearningEncounterCount(dataset, recordId, delta) {
+  const record = state.learning[dataset]?.find((item) => item.id === recordId);
+  if (!record || ![-1, 1].includes(delta)) return;
+
+  const currentCount = normalizeEncounterCount(record.encounterCount);
+  const nextCount = Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, currentCount + delta));
+  if (nextCount === currentCount) return;
+
+  const nextRecords = state.learning[dataset].map((item) => item.id === recordId
+    ? { ...item, encounterCount: nextCount }
+    : item);
+  const nextLearning = { ...state.learning, [dataset]: nextRecords };
+  if (!persistLearningData(nextLearning)) {
+    showToast("操作失败：遇到次数无法保存");
+    return;
+  }
+
+  state.learning = nextLearning;
+  renderLearningRecords();
+  showToast(`遇到次数已调整为 ${nextCount}`);
 }
 
 function openAptitudeDetail(recordId) {
@@ -2927,6 +3094,7 @@ async function handleLearningSubmit(event) {
     id: existing?.id || recordId || createId(dataset.replace(/s$/, "")),
     createdAt: existing?.createdAt || now,
     updatedAt: now,
+    encounterCount: normalizeEncounterCount(existing?.encounterCount),
     images: (state.learningImageDraft?.images || existing?.images || []).map((image) => ({ ...image }))
   };
 
