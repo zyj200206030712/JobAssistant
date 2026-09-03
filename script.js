@@ -287,7 +287,7 @@ const LEARNING_FIELD_SCHEMAS = {
   aptitudeTests: [
     { key: "question", label: "题目", type: "textarea", required: true, span: 2, placeholder: "输入行测题目" },
     { key: "type", label: "题目类型", type: "select", required: true, options: ["言语理解", "判断推理", "数量关系", "资料分析", "常识"] },
-    { key: "answer", label: "答案", type: "textarea", required: true, placeholder: "正确答案" },
+    { key: "answer", label: "答案", type: "textarea", required: true, span: 2, rows: 8, placeholder: "正确答案" },
     { key: "analysis", label: "解析", type: "textarea", span: 2, placeholder: "解题思路和关键步骤" },
     { key: "wrongReason", label: "错题原因", type: "textarea", span: 2, placeholder: "错误原因和避免方法" },
     { key: "favorite", label: "加入收藏", type: "checkbox" },
@@ -302,7 +302,7 @@ const LEARNING_FIELD_SCHEMAS = {
     { key: "remark", label: "备注", type: "textarea", span: 2, placeholder: "适用场景或写作提示" }
   ],
   leetcode: [
-    { key: "number", label: "题目编号", type: "text", required: true, placeholder: "例如：1" },
+    { key: "number", label: "题目编号", type: "text", placeholder: "例如：1（选填）" },
     { key: "name", label: "名称", type: "text", required: true, placeholder: "例如：两数之和" },
     { key: "problemDetail", label: "题目详情", type: "textarea", required: true, span: 2, rows: 7, placeholder: "输入题目描述、输入输出、示例和约束条件" },
     { key: "link", label: "LeetCode 链接", type: "url", span: 2, placeholder: "https://leetcode.cn/problems/...（选填）" },
@@ -1750,9 +1750,12 @@ function renderCompanyManagement() {
         </div>
         <div class="company-position-copy">
           <strong title="${escapeHtml(item.position)}">${escapeHtml(item.position || "岗位待定")}</strong>
-          <span>${escapeHtml(item.direction || "方向待定")}</span>
+          <span title="${escapeHtml(item.location)}">${escapeHtml(item.location || "地点待定")}</span>
         </div>
-        <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "状态待定")}</span>
+        <div class="company-status-copy">
+          <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status || "状态待定")}</span>
+          <small title="${escapeHtml(item.batch)}">${escapeHtml(item.batch || "批次待定")}</small>
+        </div>
         <div class="company-note-cell" title="${escapeHtml(preferredRemark)}">
           <span>${escapeHtml(preferredRemark)}</span>
         </div>
@@ -2414,7 +2417,7 @@ function getLearningCardView(dataset, record) {
     details: compactDetails([record.goldenSentence && `金句：${record.goldenSentence}`, record.caseStudy && `案例：${record.caseStudy}`])
   };
   if (dataset === "leetcode") return {
-    title: `#${record.number || "—"} ${record.name || "未命名题目"}`,
+    title: `${record.number ? `#${record.number} ` : ""}${record.name || "未命名题目"}`,
     tag: `${record.difficulty || "难度待定"} · ${record.type || "未分类"}`,
     summary: record.problemDetail || record.approach,
     states: compactDetails([record.completed && "已完成", record.review && "待复习"]),
@@ -2597,7 +2600,7 @@ function renderLeetcodeDetail() {
     return;
   }
 
-  document.getElementById("leetcodeDetailNumber").textContent = `#${record.number || "—"}`;
+  document.getElementById("leetcodeDetailNumber").textContent = record.number ? `#${record.number}` : "暂无编号";
   document.getElementById("leetcodeDetailName").textContent = record.name || "未命名题目";
   document.getElementById("leetcodeDetailDifficulty").textContent = record.difficulty || "难度待定";
   document.getElementById("leetcodeDetailType").textContent = record.type || "未分类";

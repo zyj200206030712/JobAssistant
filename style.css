@@ -1067,6 +1067,7 @@ button:focus-visible {
 
 .company-record-copy,
 .company-position-copy,
+.company-status-copy,
 .company-place-copy {
   min-width: 0;
 }
@@ -1167,7 +1168,23 @@ button:focus-visible {
 }
 
 .company-list-pane .status-pill {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
   padding: 4px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.company-status-copy small {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  color: #8c97a7;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .record-actions {
@@ -3741,6 +3758,10 @@ html[data-theme="dark"] .company-updated-cell span {
 }
 
 html[data-theme="dark"] .company-note-cell span {
+  color: #95a3b7;
+}
+
+html[data-theme="dark"] .company-status-copy small {
   color: #95a3b7;
 }
 
