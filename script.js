@@ -422,8 +422,8 @@ const state = {
   }
 };
 
-const INTERVIEW_STATUSES = new Set(["笔试", "一面", "二面", "终面"]);
-const ACTIONED_STATUSES = new Set(["已投递", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
+const INTERVIEW_STATUSES = new Set(["测评", "笔试", "一面", "二面", "终面"]);
+const ACTIONED_STATUSES = new Set(["已投递", "测评", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
 const DEADLINE_EXCLUDED_STATUSES = new Set(["Offer", "未通过", "不感兴趣"]);
 const COMPANY_CATEGORIES = new Set(["央国企", "研究所", "私企", "外企"]);
 const RESEARCH_INSTITUTE_NAME_PATTERN = /(研究所|研究院|科学院|院所)/;
@@ -3795,7 +3795,7 @@ function prepareImportData(data) {
 function normalizeImportedCompanies(records) {
   if (!Array.isArray(records)) throw new Error("companies 必须是数组");
   const validBatches = new Set(["提前批", "正式批", "补录", "其他"]);
-  const validStatuses = new Set(["未开启", "未关注", "不感兴趣", "待投递", "已投递", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
+  const validStatuses = new Set(["未开启", "未关注", "不感兴趣", "待投递", "已投递", "测评", "笔试", "一面", "二面", "终面", "Offer", "未通过"]);
   return records.map((record, index) => {
     if (!record || typeof record !== "object" || !String(record.company || "").trim()) {
       throw new Error(`第 ${index + 1} 条企业记录缺少企业名称`);
