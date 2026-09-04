@@ -33,7 +33,7 @@
         </button>
         <button class="nav-item" type="button" data-page="websites">
           <span class="nav-icon" aria-hidden="true">链</span>
-          <span>招聘网站</span>
+          <span>相关网站</span>
         </button>
         <button class="nav-item" type="button" data-page="settings">
           <span class="nav-icon" aria-hidden="true">设</span>
@@ -144,66 +144,7 @@
             </section>
           </div>
 
-          <section class="content-card quick-links-card" aria-labelledby="quickLinksTitle">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Quick access</p>
-                <h2 id="quickLinksTitle">常用链接</h2>
-              </div>
-              <button class="primary-button compact-button" id="addQuickLinkButton" type="button"><span aria-hidden="true">＋</span> 新增链接</button>
-            </div>
-            <div class="quick-link-grid" id="quickLinkList"></div>
-          </section>
         </section>
-
-        <div class="modal-backdrop" id="quickLinkModal" hidden>
-          <section class="modal-panel quick-link-modal-panel" role="dialog" aria-modal="true" aria-labelledby="quickLinkModalTitle">
-            <header class="modal-header">
-              <div>
-                <p class="section-kicker">Quick access</p>
-                <h2 id="quickLinkModalTitle">新增常用链接</h2>
-              </div>
-              <button class="modal-close" type="button" data-close-quick-link-modal aria-label="关闭">×</button>
-            </header>
-            <form id="quickLinkForm" novalidate>
-              <input id="quickLinkId" type="hidden">
-              <div class="form-grid quick-link-form-grid">
-                <label class="form-field">
-                  <span>链接名称 <em>*</em></span>
-                  <input id="quickLinkName" name="name" type="text" maxlength="80" placeholder="例如：学校邮箱" required>
-                  <small class="field-error"></small>
-                </label>
-                <label class="form-field">
-                  <span>链接分类 <em>*</em></span>
-                  <input id="quickLinkCategory" name="category" type="text" maxlength="40" list="quickLinkCategoryOptions" placeholder="例如：邮箱、AI 工具" required>
-                  <datalist id="quickLinkCategoryOptions">
-                    <option value="邮箱"></option>
-                    <option value="AI 工具"></option>
-                    <option value="学习"></option>
-                    <option value="办公"></option>
-                    <option value="其他"></option>
-                  </datalist>
-                  <small class="field-error"></small>
-                </label>
-                <label class="form-field form-span-2">
-                  <span>链接网址 <em>*</em></span>
-                  <input id="quickLinkUrl" name="url" type="url" placeholder="https://example.com" required>
-                  <small class="field-error"></small>
-                </label>
-                <label class="form-field form-span-2">
-                  <span>备注</span>
-                  <textarea id="quickLinkRemark" name="remark" rows="3" maxlength="300" placeholder="记录账号用途或使用说明（请勿填写密码）"></textarea>
-                  <small class="field-error"></small>
-                </label>
-              </div>
-              <div class="form-message" id="quickLinkFormMessage" role="alert"></div>
-              <footer class="modal-footer">
-                <button class="secondary-button" type="button" data-close-quick-link-modal>取消</button>
-                <button class="primary-button" type="submit">保存链接</button>
-              </footer>
-            </form>
-          </section>
-        </div>
 
         <section class="page-panel" id="page-companies" data-title="企业管理">
           <div class="company-page-heading">
@@ -736,12 +677,12 @@
           </section>
         </div>
 
-        <section class="page-panel" id="page-websites" data-title="招聘网站">
+        <section class="page-panel" id="page-websites" data-title="相关网站">
           <div class="website-page-heading">
             <div>
-              <p class="section-kicker">Recruitment links</p>
-              <h2>常用招聘网站</h2>
-              <p>集中保存求职平台、官方渠道与企业招聘官网，减少重复查找。</p>
+              <p class="section-kicker">Related links</p>
+              <h2>常用相关网站</h2>
+              <p>集中保存求职平台、官方渠道、企业招聘官网与常用工具，减少重复查找。</p>
             </div>
             <button class="primary-button" id="addWebsiteButton" type="button"><span aria-hidden="true">＋</span> 新增网站</button>
           </div>
@@ -754,7 +695,7 @@
             <div class="website-category-chips" id="websiteCategoryChips"></div>
           </section>
 
-          <section class="website-workspace" aria-label="招聘网站列表">
+          <section class="website-workspace" aria-label="相关网站列表">
             <div class="website-toolbar">
               <label class="search-box website-search" for="websiteSearch">
                 <span aria-hidden="true">⌕</span>
@@ -801,6 +742,7 @@
                     <option value="综合招聘"></option>
                     <option value="官方平台"></option>
                     <option value="企业官网"></option>
+                    <option value="工具"></option>
                   </datalist>
                   <small class="field-error"></small>
                 </label>
@@ -926,7 +868,7 @@
             <section class="settings-card data-settings" aria-labelledby="dataSettingsTitle">
               <div class="settings-card-heading">
                 <span class="settings-heading-icon" aria-hidden="true">数</span>
-                <div><h3 id="dataSettingsTitle">JSON 数据备份</h3><p>备份文件包含企业、学习资料、相关图片和招聘网站。</p></div>
+                <div><h3 id="dataSettingsTitle">JSON 数据备份</h3><p>备份文件包含企业、学习资料、相关图片和相关网站。</p></div>
               </div>
 
               <div class="backup-action-row">

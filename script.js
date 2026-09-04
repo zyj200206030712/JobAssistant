@@ -378,7 +378,6 @@ const state = {
   companies: [],
   learning: structuredCloneSafe(FALLBACK_LEARNING),
   websites: [],
-  quickLinks: [],
   companyFilters: {
     category: "全部",
     batch: "全部",
@@ -467,12 +466,15 @@ async function initApp() {
   bindWebsiteManagement();
   bindSettings();
   setTodayText();
-  [state.companies, state.learning, state.websites, state.quickLinks] = await Promise.all([
+  const [companies, learning, websites, legacyQuickLinks] = await Promise.all([
     loadCompanies(),
     loadLearningData(),
     loadWebsites(),
     loadQuickLinks()
   ]);
+  state.companies = companies;
+  state.learning = learning;
+  state.websites = migrateLegacyQuickLinks(websites, legacyQuickLinks);
   await initializeImageStorage();
   await initializeFileSync();
   renderDashboard();
@@ -496,32 +498,13 @@ function bindDashboardActions() {
   const refreshButton = document.getElementById("refreshDashboard");
   refreshButton.addEventListener("click", async () => {
     refreshButton.disabled = true;
-    [state.companies, state.quickLinks] = await Promise.all([loadCompanies(), loadQuickLinks()]);
+    state.companies = await loadCompanies();
     renderDashboard();
     renderCompanyManagement();
     showToast("首页数据已刷新");
     window.setTimeout(() => {
       refreshButton.disabled = false;
     }, 300);
-  });
-
-  document.getElementById("addQuickLinkButton").addEventListener("click", () => openQuickLinkModal());
-  document.getElementById("quickLinkForm").addEventListener("submit", handleQuickLinkSubmit);
-  document.getElementById("quickLinkList").addEventListener("click", handleQuickLinkAction);
-  document.querySelectorAll("[data-close-quick-link-modal]").forEach((button) => {
-    button.addEventListener("click", closeQuickLinkModal);
-  });
-  const quickLinkModal = document.getElementById("quickLinkModal");
-  quickLinkModal.addEventListener("click", (event) => {
-    if (event.target === quickLinkModal) closeQuickLinkModal();
-  });
-  document.getElementById("quickLinkForm").addEventListener("input", (event) => {
-    const field = event.target.closest(".form-field");
-    if (!field) return;
-    field.classList.remove("invalid");
-    const error = field.querySelector(".field-error");
-    if (error) error.textContent = "";
-    hideQuickLinkFormMessage();
   });
 }
 
@@ -593,13 +576,11 @@ function bindCompanyManagement() {
     const leetcodeDetailModal = document.getElementById("leetcodeDetailModal");
     const generalLearningDetailModal = document.getElementById("generalLearningDetailModal");
     const learningImageLightbox = document.getElementById("learningImageLightbox");
-    const quickLinkModal = document.getElementById("quickLinkModal");
     const websiteDeleteModal = document.getElementById("deleteWebsiteModal");
     const websiteModal = document.getElementById("websiteModal");
     if (!learningImageLightbox.hidden) closeLearningImageLightbox();
     else if (!websiteDeleteModal.hidden) closeWebsiteDeleteModal();
     else if (!websiteModal.hidden) closeWebsiteModal();
-    else if (!quickLinkModal.hidden) closeQuickLinkModal();
     else if (!learningDeleteModal.hidden) closeLearningDeleteModal();
     else if (!generalLearningDetailModal.hidden) closeGeneralLearningDetail();
     else if (!leetcodeDetailModal.hidden) closeLeetcodeDetail();
@@ -1020,6 +1001,67 @@ async function loadQuickLinks() {
   return structuredCloneSafe(FALLBACK_QUICK_LINKS);
 }
 
+function migrateLegacyQuickLinks(websites, quickLinks) {
+  const currentWebsites = Array.isArray(websites) ? websites : [];
+  if (!Array.isArray(quickLinks) || !quickLinks.length) return currentWebsites;
+
+  try {
+    const migratedWebsites = convertLegacyQuickLinksToWebsites(quickLinks);
+    const mergedWebsites = mergeRecordsById(currentWebsites, migratedWebsites);
+    if (!persistLegacyQuickLinkMigration(mergedWebsites)) {
+      console.warn("常用链接暂未完成持久化迁移，原数据已保留并将在下次启动时重试。");
+    }
+    return mergedWebsites;
+  } catch (error) {
+    console.error("常用链接迁移失败，原数据保持不变。", error);
+    return currentWebsites;
+  }
+}
+
+function convertLegacyQuickLinksToWebsites(records) {
+  if (!Array.isArray(records)) throw new Error("quickLinks 必须是数组");
+  return records.map((record, index) => {
+    if (!record || typeof record !== "object" || !String(record.name || "").trim()) {
+      throw new Error(`第 ${index + 1} 条常用链接缺少名称`);
+    }
+    if (!isHttpUrl(record.url)) throw new Error(`“${record.name}”的网址无效`);
+    const now = new Date().toISOString();
+    const sourceId = String(record.id || `${record.name}-${index + 1}`).trim();
+    return {
+      id: `website-tool-${sourceId}`,
+      name: String(record.name).trim(),
+      category: "工具",
+      url: String(record.url).trim(),
+      remark: String(record.remark || "").trim(),
+      createdAt: record.createdAt || now,
+      updatedAt: record.updatedAt || now
+    };
+  });
+}
+
+function persistLegacyQuickLinkMigration(websites) {
+  const websiteKey = "jobAssistant.websites";
+  const quickLinkKey = "jobAssistant.quickLinks";
+  const previousWebsites = readLocalStorage(websiteKey);
+  const previousQuickLinks = readLocalStorage(quickLinkKey);
+  try {
+    window.localStorage.setItem(websiteKey, JSON.stringify(websites));
+    window.localStorage.setItem(quickLinkKey, "[]");
+    return true;
+  } catch (error) {
+    console.error("常用链接迁移数据保存失败。", error);
+    try {
+      if (previousWebsites === null) window.localStorage.removeItem(websiteKey);
+      else window.localStorage.setItem(websiteKey, previousWebsites);
+      if (previousQuickLinks === null) window.localStorage.removeItem(quickLinkKey);
+      else window.localStorage.setItem(quickLinkKey, previousQuickLinks);
+    } catch (rollbackError) {
+      console.error("常用链接迁移回滚失败。", rollbackError);
+    }
+    return false;
+  }
+}
+
 function normalizeLearningData(data) {
   const normalized = {};
   Object.keys(LEARNING_FIELD_SCHEMAS).forEach((key) => {
@@ -1140,17 +1182,6 @@ function persistWebsites(websites) {
     return true;
   } catch (error) {
     console.error("网站数据保存失败。", error);
-    return false;
-  }
-}
-
-function persistQuickLinks(quickLinks) {
-  try {
-    window.localStorage.setItem("jobAssistant.quickLinks", JSON.stringify(quickLinks));
-    scheduleAutoFileSync();
-    return true;
-  } catch (error) {
-    console.error("常用链接数据保存失败。", error);
     return false;
   }
 }
@@ -1540,173 +1571,6 @@ function renderDashboard() {
 
   renderRecentCompanies(companies);
   renderTodos(companies);
-  renderQuickLinks();
-}
-
-function renderQuickLinks() {
-  const container = document.getElementById("quickLinkList");
-  const links = [...state.quickLinks]
-    .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
-
-  if (!links.length) {
-    container.innerHTML = emptyState("暂无常用链接，点击“新增链接”添加邮箱或 AI 工具", "链");
-    return;
-  }
-
-  const themes = [
-    ["#2b67d9", "#e9f1ff"],
-    ["#7a52c7", "#f1ebff"],
-    ["#0d9463", "#e8f8f1"],
-    ["#c57419", "#fff3e1"],
-    ["#cc4f5e", "#fff0f2"]
-  ];
-  container.innerHTML = links.map((link, index) => {
-    const [color, background] = themes[index % themes.length];
-    const safeId = escapeHtml(link.id || "");
-    const validUrl = isHttpUrl(link.url);
-    return `
-      <article class="quick-link-card" style="--quick-link-color:${color};--quick-link-bg:${background}">
-        <div class="quick-link-card-top">
-          <span class="quick-link-icon" aria-hidden="true">${escapeHtml(getCompanyInitial(link.name))}</span>
-          <span class="quick-link-category">${escapeHtml(link.category || "其他")}</span>
-          <div class="quick-link-actions">
-            <button type="button" data-quick-link-action="edit" data-quick-link-id="${safeId}" title="编辑">编</button>
-            <button class="delete" type="button" data-quick-link-action="delete" data-quick-link-id="${safeId}" title="删除">删</button>
-          </div>
-        </div>
-        <strong class="quick-link-name">${escapeHtml(link.name || "未命名链接")}</strong>
-        <span class="quick-link-host">${escapeHtml(validUrl ? getWebsiteHostname(link.url) : "网址无效")}</span>
-        <p>${escapeHtml(link.remark || "点击打开常用工具")}</p>
-        ${validUrl
-          ? `<a class="quick-link-open" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">打开链接 <span aria-hidden="true">→</span></a>`
-          : `<span class="quick-link-open disabled">网址无效</span>`}
-      </article>`;
-  }).join("");
-}
-
-function handleQuickLinkAction(event) {
-  const button = event.target.closest("[data-quick-link-action]");
-  if (!button) return;
-  const link = state.quickLinks.find((item) => item.id === button.dataset.quickLinkId);
-  if (!link) return;
-  if (button.dataset.quickLinkAction === "edit") {
-    openQuickLinkModal(link);
-    return;
-  }
-  if (button.dataset.quickLinkAction !== "delete") return;
-  if (!window.confirm(`确认删除常用链接“${link.name}”吗？`)) return;
-  const nextLinks = state.quickLinks.filter((item) => item.id !== link.id);
-  if (!persistQuickLinks(nextLinks)) {
-    showToast("删除失败：本机常用链接数据无法保存");
-    return;
-  }
-  state.quickLinks = nextLinks;
-  renderQuickLinks();
-  renderSettings();
-  showToast("常用链接已删除");
-}
-
-function openQuickLinkModal(link = null) {
-  const form = document.getElementById("quickLinkForm");
-  form.reset();
-  clearQuickLinkFormErrors();
-  document.getElementById("quickLinkModalTitle").textContent = link ? "编辑常用链接" : "新增常用链接";
-  document.getElementById("quickLinkId").value = link?.id || "";
-  document.getElementById("quickLinkName").value = link?.name || "";
-  document.getElementById("quickLinkCategory").value = link?.category || "";
-  document.getElementById("quickLinkUrl").value = link?.url || "";
-  document.getElementById("quickLinkRemark").value = link?.remark || "";
-  document.getElementById("quickLinkModal").hidden = false;
-  document.body.classList.add("modal-open");
-  window.setTimeout(() => document.getElementById("quickLinkName").focus(), 40);
-}
-
-function closeQuickLinkModal() {
-  document.getElementById("quickLinkModal").hidden = true;
-  syncModalBodyState();
-}
-
-function handleQuickLinkSubmit(event) {
-  event.preventDefault();
-  if (!validateQuickLinkForm()) return;
-  const formData = new FormData(event.currentTarget);
-  const existingId = document.getElementById("quickLinkId").value;
-  const existing = state.quickLinks.find((item) => item.id === existingId);
-  const now = new Date().toISOString();
-  const link = {
-    id: existing?.id || createId("quick-link"),
-    name: String(formData.get("name") || "").trim(),
-    category: String(formData.get("category") || "").trim(),
-    url: String(formData.get("url") || "").trim(),
-    remark: String(formData.get("remark") || "").trim(),
-    createdAt: existing?.createdAt || now,
-    updatedAt: now
-  };
-  const nextLinks = existing
-    ? state.quickLinks.map((item) => item.id === existing.id ? link : item)
-    : [...state.quickLinks, link];
-  if (!persistQuickLinks(nextLinks)) {
-    showQuickLinkFormMessage("保存失败：浏览器无法写入本机常用链接数据。");
-    return;
-  }
-  state.quickLinks = nextLinks;
-  closeQuickLinkModal();
-  renderQuickLinks();
-  renderSettings();
-  showToast(existing ? "常用链接已更新" : "常用链接已添加并保存到本机");
-}
-
-function validateQuickLinkForm() {
-  clearQuickLinkFormErrors();
-  let valid = true;
-  [
-    ["quickLinkName", "请输入链接名称"],
-    ["quickLinkCategory", "请输入链接分类"],
-    ["quickLinkUrl", "请输入链接网址"]
-  ].forEach(([id, message]) => {
-    const input = document.getElementById(id);
-    if (!input.value.trim()) {
-      setQuickLinkFieldError(input, message);
-      valid = false;
-    }
-  });
-  const urlInput = document.getElementById("quickLinkUrl");
-  if (urlInput.value.trim() && !isHttpUrl(urlInput.value.trim())) {
-    setQuickLinkFieldError(urlInput, "请输入以 http:// 或 https:// 开头的有效网址");
-    valid = false;
-  }
-  if (!valid) {
-    showQuickLinkFormMessage("请检查标红的表单内容后再保存。");
-    document.querySelector("#quickLinkForm .form-field.invalid input, #quickLinkForm .form-field.invalid textarea")?.focus();
-  }
-  return valid;
-}
-
-function setQuickLinkFieldError(input, message) {
-  const field = input.closest(".form-field");
-  field.classList.add("invalid");
-  field.querySelector(".field-error").textContent = message;
-}
-
-function clearQuickLinkFormErrors() {
-  document.querySelectorAll("#quickLinkForm .form-field").forEach((field) => {
-    field.classList.remove("invalid");
-    const error = field.querySelector(".field-error");
-    if (error) error.textContent = "";
-  });
-  hideQuickLinkFormMessage();
-}
-
-function showQuickLinkFormMessage(message) {
-  const element = document.getElementById("quickLinkFormMessage");
-  element.textContent = message;
-  element.classList.add("show");
-}
-
-function hideQuickLinkFormMessage() {
-  const element = document.getElementById("quickLinkFormMessage");
-  element.textContent = "";
-  element.classList.remove("show");
 }
 
 function renderCompanyManagement() {
@@ -3240,7 +3104,6 @@ function syncModalBodyState() {
     "leetcodeDetailModal",
     "generalLearningDetailModal",
     "learningImageLightbox",
-    "quickLinkModal",
     "websiteModal",
     "deleteWebsiteModal"
   ];
@@ -3317,7 +3180,7 @@ function renderWebsiteCards() {
   document.getElementById("websiteResultCount").textContent = `共 ${websites.length} 个网站`;
   const container = document.getElementById("websiteList");
   if (!websites.length) {
-    const message = state.websites.length ? "没有符合当前条件的网站" : "暂无招聘网站，点击“新增网站”开始添加";
+    const message = state.websites.length ? "没有符合当前条件的网站" : "暂无相关网站，点击“新增网站”开始添加";
     container.innerHTML = emptyState(message, "链");
     return;
   }
@@ -3345,7 +3208,7 @@ function renderWebsiteCards() {
           </div>
           <span class="website-card-category">${escapeHtml(website.category || "未分类")}</span>
         </div>
-        <p class="website-card-remark">${escapeHtml(website.remark || "暂无备注，点击访问直接打开该招聘网站。")}</p>
+        <p class="website-card-remark">${escapeHtml(website.remark || "暂无备注，点击访问直接打开该网站。")}</p>
         <div class="website-card-actions">
           <a class="website-visit-button" href="${escapeHtml(website.url)}" target="_blank" rel="noopener noreferrer">访问网站 <span aria-hidden="true">↗</span></a>
           <button class="website-action-button" type="button" data-website-action="edit" data-website-id="${safeId}" title="编辑网站" aria-label="编辑 ${escapeHtml(website.name)}">编</button>
@@ -3419,7 +3282,7 @@ function handleWebsiteSubmit(event) {
   state.websites = nextWebsites;
   closeWebsiteModal();
   renderWebsiteManagement();
-  showToast(existing ? "网站信息已更新" : "招聘网站已添加并保存到本机");
+  showToast(existing ? "网站信息已更新" : "相关网站已添加并保存到本机");
 }
 
 function validateWebsiteForm() {
@@ -3548,7 +3411,7 @@ function renderSettings() {
     .reduce((sum, key) => sum + (state.learning[key]?.length || 0), 0);
   document.getElementById("settingsCompanyCount").textContent = state.companies.length;
   document.getElementById("settingsLearningCount").textContent = learningCount;
-  document.getElementById("settingsWebsiteCount").textContent = state.websites.length + state.quickLinks.length;
+  document.getElementById("settingsWebsiteCount").textContent = state.websites.length;
   document.getElementById("settingsStorageSize").textContent = formatBytes(getCurrentDataSize());
   document.getElementById("settingsImageCount").textContent = state.imageStorageStats.count;
   document.getElementById("settingsImageSize").textContent = state.imageStorageAvailable
@@ -3633,8 +3496,7 @@ function getCurrentDataSize() {
   const serialized = JSON.stringify({
     companies: state.companies,
     learning: state.learning,
-    websites: state.websites,
-    quickLinks: state.quickLinks
+    websites: state.websites
   });
   return new Blob([serialized]).size;
 }
@@ -3700,12 +3562,11 @@ async function exportAllData() {
 async function createCompleteBackupPayload() {
   return {
     app: "JobAssistant",
-    version: "1.3.0",
+    version: "1.4.0",
     exportedAt: new Date().toISOString(),
     companies: state.companies,
     learning: await buildExportLearningData(),
-    websites: state.websites,
-    quickLinks: state.quickLinks
+    websites: state.websites
   };
 }
 
@@ -3762,7 +3623,7 @@ async function processImportFile(file) {
 }
 
 function prepareImportData(data) {
-  const prepared = { companies: null, learning: null, websites: null, quickLinks: null, imageRecords: [] };
+  const prepared = { companies: null, learning: null, websites: null, imageRecords: [] };
   if (Array.isArray(data)) {
     if (!data.length) throw new Error("空数组无法判断数据类型");
     if (data.some((item) => item && Object.prototype.hasOwnProperty.call(item, "company"))) {
@@ -3782,12 +3643,17 @@ function prepareImportData(data) {
   if (isFullBackup) {
     if (Object.prototype.hasOwnProperty.call(data, "companies")) prepared.companies = normalizeImportedCompanies(data.companies);
     if (Object.prototype.hasOwnProperty.call(data, "learning")) prepared.learning = normalizeImportedLearning(data.learning, prepared.imageRecords);
-    if (Object.prototype.hasOwnProperty.call(data, "websites")) prepared.websites = normalizeImportedWebsites(data.websites);
-    if (Object.prototype.hasOwnProperty.call(data, "quickLinks")) prepared.quickLinks = normalizeImportedQuickLinks(data.quickLinks);
+    const hasWebsites = Object.prototype.hasOwnProperty.call(data, "websites");
+    const hasQuickLinks = Object.prototype.hasOwnProperty.call(data, "quickLinks");
+    if (hasWebsites || hasQuickLinks) {
+      const importedWebsites = hasWebsites ? normalizeImportedWebsites(data.websites) : [];
+      const importedTools = hasQuickLinks ? convertLegacyQuickLinksToWebsites(data.quickLinks) : [];
+      prepared.websites = mergeRecordsById(importedWebsites, importedTools);
+    }
   } else if (learningKeys.some((key) => Object.prototype.hasOwnProperty.call(data, key))) {
     prepared.learning = normalizeImportedLearning(data, prepared.imageRecords);
   } else {
-    throw new Error("未找到企业、学习资料、招聘网站或常用链接数据");
+    throw new Error("未找到企业、学习资料或相关网站数据");
   }
   return prepared;
 }
@@ -3924,27 +3790,6 @@ function normalizeImportedWebsites(records) {
   });
 }
 
-function normalizeImportedQuickLinks(records) {
-  if (!Array.isArray(records)) throw new Error("quickLinks 必须是数组");
-  return records.map((record, index) => {
-    if (!record || typeof record !== "object" || !String(record.name || "").trim()) {
-      throw new Error(`第 ${index + 1} 条常用链接缺少名称`);
-    }
-    if (!String(record.category || "").trim()) throw new Error(`“${record.name}”缺少链接分类`);
-    if (!isHttpUrl(record.url)) throw new Error(`“${record.name}”的网址无效`);
-    const now = new Date().toISOString();
-    return {
-      id: String(record.id || createId("quick-link")),
-      name: String(record.name).trim(),
-      category: String(record.category).trim(),
-      url: String(record.url).trim(),
-      remark: String(record.remark || "").trim(),
-      createdAt: record.createdAt || now,
-      updatedAt: record.updatedAt || now
-    };
-  });
-}
-
 function renderImportPreview() {
   const data = state.pendingImportData;
   if (!data) return;
@@ -3956,7 +3801,6 @@ function renderImportPreview() {
   }
   if (data.imageRecords?.length) parts.push(`${data.imageRecords.length} 张图片`);
   if (data.websites) parts.push(`${data.websites.length} 个网站`);
-  if (data.quickLinks) parts.push(`${data.quickLinks.length} 个常用链接`);
   document.getElementById("importFileName").textContent = state.pendingImportFileName;
   document.getElementById("importFileSummary").textContent = parts.join(" · ") || "没有可导入的数据";
   document.getElementById("importPreview").hidden = false;
@@ -3995,10 +3839,7 @@ async function confirmImportData() {
     learning: { ...state.learning },
     websites: imported.websites
       ? (merge ? mergeRecordsById(state.websites, imported.websites) : imported.websites)
-      : state.websites,
-    quickLinks: imported.quickLinks
-      ? (merge ? mergeRecordsById(state.quickLinks, imported.quickLinks) : imported.quickLinks)
-      : state.quickLinks
+      : state.websites
   };
 
   if (imported.learning) {
@@ -4037,7 +3878,6 @@ async function confirmImportData() {
     state.companies = next.companies;
     state.learning = normalizeLearningData(next.learning);
     state.websites = next.websites;
-    state.quickLinks = next.quickLinks;
     await cleanupOrphanImages().catch((error) => console.warn("导入后的无主图片清理失败。", error));
     await refreshImageStorageStats().catch((error) => console.warn("图片占用统计刷新失败。", error));
     resetCompanyFilters();
@@ -4094,7 +3934,6 @@ function persistImportedBundle(next, imported) {
   if (imported.companies) targets.push(["jobAssistant.companies", JSON.stringify(next.companies)]);
   if (imported.learning) targets.push(["jobAssistant.learning", JSON.stringify(next.learning)]);
   if (imported.websites) targets.push(["jobAssistant.websites", JSON.stringify(next.websites)]);
-  if (imported.quickLinks) targets.push(["jobAssistant.quickLinks", JSON.stringify(next.quickLinks)]);
   const previous = new Map();
   try {
     targets.forEach(([key, value]) => {

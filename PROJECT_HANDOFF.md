@@ -6,7 +6,7 @@
 
 ## 1. 项目目标与硬性约束
 
-这是仅供个人使用、双击 `index.html` 即可运行的离线求职管理工作台，用于企业投递管理、学习资料、算法题、模拟面试、招聘网站和常用链接管理。
+这是仅供个人使用、双击 `index.html` 即可运行的离线求职管理工作台，用于企业投递管理、学习资料、算法题、模拟面试和相关网站管理。
 
 必须保持：
 
@@ -45,7 +45,7 @@ JobAssistant/
 
 - 企业总数、已投递、待投递、面试、Offer 统计；
 - 最近添加企业和近期事项；
-- 邮箱、AI 工具等常用链接的新增、编辑、删除和新标签页打开。
+- 原首页常用链接模块已移除，相关链接统一在“相关网站”页面管理。
 
 ### 企业管理
 
@@ -96,9 +96,11 @@ JobAssistant/
 - 启动时仅在成功读取到结构完整、记录 ID 与图片 ID 有效的本机学习数据后清理无主图片；学习数据缺失、损坏或只有部分模块时保留 IndexedDB 图片，避免恢复前误删；
 - 合并不含 `images` 字段的旧版学习记录时，相同 ID 的现有记录保留当前图片；显式空数组或覆盖导入仍以导入内容为准。
 
-### 招聘网站与设置
+### 相关网站与设置
 
-- 招聘网站支持卡片、新增、编辑、删除、搜索、分类和新标签页打开；
+- 相关网站支持卡片、新增、编辑、删除、搜索、分类和新标签页打开；
+- 原首页常用链接在新版首次启动时自动迁移为“工具”分类；迁移使用稳定 ID 防止重复，网站数据保存成功后才清空旧数据；
+- 新版备份只导出 `websites`，旧备份中的 `quickLinks` 仍可导入并转换为“工具”分类；
 - 支持浅色/深色模式；
 - 支持完整 JSON 导入、合并或覆盖导入、完整 JSON 导出；
 - 设置页显示文字和图片存储统计。
@@ -111,8 +113,8 @@ JobAssistant/
 
 - 企业：`localStorage` 键 `jobAssistant.companies`；
 - 学习资料：`localStorage` 键 `jobAssistant.learning`；
-- 招聘网站：`localStorage` 键 `jobAssistant.websites`；
-- 首页常用链接：`localStorage` 键 `jobAssistant.quickLinks`；
+- 相关网站：`localStorage` 键 `jobAssistant.websites`；
+- 旧版常用链接：`localStorage` 键 `jobAssistant.quickLinks`，仅用于一次性迁移，成功后保存为空数组；
 - 主题和同步偏好：其他 `jobAssistant.*` 键；
 - 图片二进制：IndexedDB 数据库 `JobAssistantMedia` 的 `images` 对象仓库；
 - 本地同步文件句柄：同一 IndexedDB 的 `fileHandles` 对象仓库。
