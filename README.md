@@ -414,12 +414,14 @@ JobAssistant/
 
 ## 📈 Star 趋势
 
-<a href="https://www.star-history.com/?repos=zyj200206030712%2FJobAssistant&type=date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date" width="100%" />
-  </picture>
+## Star History
+
+<a href="https://www.star-history.com/?repos=zyj200206030712%2FJobAssistant&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&legend=top-left" />
+ </picture>
 </a>
 
 <div align="center">
