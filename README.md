@@ -18,8 +18,6 @@
 
 查看投递统计、最近添加企业和近期需要处理的事项，点击“查看全部企业”进入企业管理。
 
-“已投递”统计当前状态为已投递、测评、笔试、AI面试、一面、二面、终面、Offer、未通过的企业总数；“进程中”统计其中处于测评、笔试、AI面试、一面、二面、终面的企业。两项均按企业当前状态计数，“进程中”包含在“已投递”总数内。
-
 ![职路首页：投递统计、最近添加企业和近期待办](data/pics/职路_首页.png)
 
 ### 企业管理：记录企业与投递状态
@@ -65,9 +63,125 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `index.html` | 页面入口，双击打开 |
-| `style.css` / `script.js` | 界面样式与功能逻辑 |
-| `data/` | 初始数据与 README 截图；其中 JSON 文件不是实时数据 |
-| `assets/icons/` | 图标资源 |
+| 企业 | `localStorage` → `jobAssistant.companies` |
+| 学习资料 | `localStorage` → `jobAssistant.learning` |
+| 相关网站 | `localStorage` → `jobAssistant.websites` |
+| 主题与同步偏好 | 其他 `jobAssistant.*` 键 |
+| 图片二进制 | IndexedDB `JobAssistantMedia` → `images` |
+| 本地同步文件句柄 | IndexedDB `JobAssistantMedia` → `fileHandles` |
 
-实际使用数据保存在当前浏览器的 LocalStorage 和 IndexedDB 中，图片随完整 JSON 备份一起导出。开发与维护说明见 [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md)。
+`data/*.json` 只是初始 / 示例数据，**不是** 浏览器运行时的实时数据文件。
+
+</details>
+
+## 📁 项目结构
+
+```text
+JobAssistant/
+├── index.html           # 页面入口，双击打开
+├── style.css            # 界面样式，含深色模式
+├── script.js            # 全部功能逻辑
+├── data/
+│   ├── companies.json   # 初始企业数据（非实时数据）
+│   ├── learning.json    # 初始学习资料
+│   ├── websites.json    # 初始相关网站
+│   ├── quicklinks.json  # 旧版常用链接（仅用于兼容迁移）
+│   └── pics/            # README 截图
+├── assets/icons/        # 图标资源
+├── PROJECT_HANDOFF.md   # 开发与维护交接文档
+└── README.md
+```
+
+## 🧭 设计原则
+
+- **零依赖**：只用 HTML、CSS、原生 JavaScript 和 JSON，不引入框架、构建工具、后端或数据库
+- **离线优先**：双击即可运行，不需要安装环境、启动服务或联网
+- **数据安全**：删除需确认、覆盖需确认；截止日期过期永远不会触发自动删除；绑定、导入、同步语义分离
+- **向后兼容**：旧版「研究所/央国企」分类自动拆分迁移，旧备份中的常用链接自动转为「工具」类网站
+
+## ❓ 常见问题
+
+<details>
+<summary><b>我的数据到底存在哪里？会被上传吗？</b></summary>
+
+<br />
+
+数据保存在当前浏览器的 LocalStorage 和 IndexedDB 中，职路没有任何服务器，也不会上传数据。导入 JSON 时文件同样只在本机浏览器中处理。
+
+</details>
+
+<details>
+<summary><b>怎么把数据迁移到另一台电脑？</b></summary>
+
+<br />
+
+在旧电脑的「设置」中点击「选择位置并导出」得到完整 JSON（图片已内嵌），拷到新电脑后打开职路，在「导入 JSON 数据」区域选择该文件，按需选择「合并」或「覆盖」即可。
+
+</details>
+
+<details>
+<summary><b>重新打开页面后数据不见了？</b></summary>
+
+<br />
+
+通常是浏览器存储环境变了：清除了「Cookie 和其他站点数据」、使用了无痕 / InPrivate 窗口、切换了浏览器或配置文件，或者移动了项目文件夹。用之前导出的 JSON 备份导入即可恢复，这也是建议定期导出的原因。
+
+</details>
+
+<details>
+<summary><b>绑定了备份文件，为什么数据没有恢复？</b></summary>
+
+<br />
+
+这是有意为之的设计：绑定只记录文件位置，不会读取文件。恢复数据请使用「导入 JSON 数据」。
+
+</details>
+
+<details>
+<summary><b>设置里显示「当前浏览器不支持文件同步」？</b></summary>
+
+<br />
+
+本地文件同步依赖 Chrome / Edge 提供的文件系统访问能力。其他浏览器可以正常使用全部核心功能，备份请使用「导出 JSON」。
+
+</details>
+
+<details>
+<summary><b>分类、状态、学习模块能改成适合我的吗？</b></summary>
+
+<br />
+
+可以直接修改源码。建议先阅读 [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md)，里面整理了数据结构、关键函数入口和必须保持的兼容规则。
+
+</details>
+
+## 🤝 参与贡献
+
+欢迎通过 [Issue](https://github.com/zyj200206030712/JobAssistant/issues) 反馈问题、提出建议，或直接提交 Pull Request。动手之前请留意：
+
+- 保持 **纯 HTML / CSS / 原生 JavaScript / JSON**，不引入框架和构建步骤
+- 新增字段需提供默认值或迁移逻辑，保证旧数据和旧备份仍能导入
+- 开发期可以用 `node --check script.js` 做语法检查，但项目运行不能依赖 Node.js
+- **不要提交个人备份文件** `JobAssistant-backup*.json`（已在 `.gitignore` 中忽略）
+
+## 📈 Star 趋势
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=zyj200206030712%2FJobAssistant&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zyj200206030712/JobAssistant&type=date&legend=top-left" />
+ </picture>
+</a>
+
+<div align="center">
+
+<br />
+
+**如果职路帮你理清了求职节奏，欢迎点一个 ⭐ Star，让更多正在找工作的同学看到它。**
+
+<img src="https://capsule-render.vercel.app/api?type=soft&color=0:3b82f6,50:1e40af,100:0f172a&height=110&section=footer&text=%E6%B1%82%E8%81%8C%E9%A1%BA%E5%88%A9%20%C2%B7%20Offer%20%E5%A4%9A%E5%A4%9A&fontSize=26&fontColor=ffffff&fontAlignY=52" width="100%" alt="求职顺利 · Offer 多多" />
+
+</div>
