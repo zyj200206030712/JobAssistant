@@ -250,7 +250,7 @@ const LEARNING_MODULES = {
   essays: {
     title: "贵州选调申论",
     kicker: "Essay materials",
-    description: "积累主题观点、金句和案例，为申论写作建立素材库。",
+    description: "按主题整理材料、问题和答案，积累申论练习与复习资料。",
     defaultDataset: "essays"
   },
   leetcode: {
@@ -285,21 +285,20 @@ const LEARNING_FIELD_SCHEMAS = {
     { key: "remark", label: "备注", type: "textarea", placeholder: "易错点或回答提示" }
   ],
   aptitudeTests: [
-    { key: "question", label: "题目", type: "textarea", required: true, span: 2, placeholder: "输入行测题目" },
-    { key: "type", label: "题目类型", type: "select", required: true, options: ["言语理解", "判断推理", "数量关系", "资料分析", "常识"] },
-    { key: "answer", label: "答案", type: "textarea", required: true, span: 2, rows: 8, placeholder: "正确答案" },
+    { key: "question", label: "题目", type: "textarea", span: 2, placeholder: "输入行测题目" },
+    { key: "type", label: "题目类型", type: "select", options: ["言语理解", "判断推理", "数量关系", "资料分析", "常识"] },
+    { key: "answer", label: "答案", type: "textarea", span: 2, rows: 8, placeholder: "正确答案" },
     { key: "analysis", label: "解析", type: "textarea", span: 2, placeholder: "解题思路和关键步骤" },
     { key: "wrongReason", label: "错题原因", type: "textarea", span: 2, placeholder: "错误原因和避免方法" },
     { key: "favorite", label: "加入收藏", type: "checkbox" },
     { key: "wrong", label: "标记为错题", type: "checkbox" }
   ],
   essays: [
-    { key: "title", label: "标题", type: "text", required: true, span: 2, placeholder: "文章或素材标题" },
-    { key: "topic", label: "主题分类", type: "text", required: true, span: 2, placeholder: "例如：基层治理、乡村振兴" },
-    { key: "content", label: "内容", type: "textarea", required: true, span: 2, placeholder: "观点、论证或完整内容" },
-    { key: "goldenSentence", label: "金句", type: "textarea", placeholder: "可引用的精彩表达" },
-    { key: "caseStudy", label: "案例", type: "textarea", placeholder: "典型案例与数据" },
-    { key: "remark", label: "备注", type: "textarea", span: 2, placeholder: "适用场景或写作提示" }
+    { key: "topic", label: "主题", type: "text", span: 2, placeholder: "例如：基层治理、乡村振兴（选填）" },
+    { key: "content", label: "材料", type: "textarea", span: 2, rows: 10, placeholder: "输入申论材料（选填）" },
+    { key: "question", label: "问题", type: "textarea", span: 2, rows: 6, placeholder: "输入题目问题和作答要求（选填）" },
+    { key: "answer", label: "答案", type: "textarea", span: 2, rows: 10, placeholder: "输入参考答案或自己的作答（选填）" },
+    { key: "remark", label: "备注", type: "textarea", span: 2, placeholder: "复习提示、易错点或补充说明（选填）" }
   ],
   leetcode: [
     { key: "number", label: "题目编号", type: "text", placeholder: "例如：1（选填）" },
@@ -353,12 +352,12 @@ const GENERAL_LEARNING_DETAIL_CONFIGS = {
     title: "申论素材详情",
     kicker: "Essay material",
     fallbackTitle: "未命名素材",
-    titleKey: "title",
-    meta: (record) => compactDetails(["贵州选调申论", record.topic && `主题：${record.topic}`]),
+    titleKey: "topic",
+    meta: () => ["贵州选调申论"],
     sections: [
-      { key: "content", label: "内容", icon: "文", featured: true },
-      { key: "goldenSentence", label: "金句", icon: "句" },
-      { key: "caseStudy", label: "案例", icon: "例" },
+      { key: "content", label: "材料", icon: "材", featured: true },
+      { key: "question", label: "问题", icon: "问" },
+      { key: "answer", label: "答案", icon: "答", featured: true },
       { key: "remark", label: "备注", icon: "注" }
     ]
   },
@@ -1068,6 +1067,7 @@ function normalizeLearningData(data) {
     const records = Array.isArray(data?.[key]) ? data[key] : [];
     let normalizedRecords = records;
     if (key === "projects") normalizedRecords = records.map(normalizeProjectRecord);
+    else if (key === "essays") normalizedRecords = records.map(normalizeEssayRecord);
     else if (key === "leetcode") normalizedRecords = records.map(normalizeLeetcodeRecord);
     else if (key === "mockInterviews") normalizedRecords = records.map(normalizeMockInterviewRecord);
     normalized[key] = normalizedRecords.map(normalizeLearningRecordImages);
@@ -1119,6 +1119,25 @@ function normalizeProjectRecord(record) {
     work: String(source.work || "").trim(),
     challengeSolution: String(source.challengeSolution || legacyChallenge).trim(),
     outcome: String(source.outcome || source.result || "").trim()
+  };
+}
+
+function normalizeEssayRecord(record) {
+  const source = record && typeof record === "object" ? record : {};
+  const { title, goldenSentence, caseStudy, ...rest } = source;
+  const legacyTitle = String(title || "").trim();
+  const topic = String(source.topic || "").trim() || legacyTitle;
+  const remarks = [String(source.remark || "").trim()];
+  if (legacyTitle && legacyTitle !== topic) remarks.push(`原标题：${legacyTitle}`);
+  if (String(goldenSentence || "").trim()) remarks.push(`原金句：${String(goldenSentence).trim()}`);
+  if (String(caseStudy || "").trim()) remarks.push(`原案例：${String(caseStudy).trim()}`);
+  return {
+    ...rest,
+    topic,
+    content: String(source.content || "").trim(),
+    question: String(source.question || "").trim(),
+    answer: String(source.answer || "").trim(),
+    remark: remarks.filter(Boolean).join("\n\n")
   };
 }
 
@@ -2132,7 +2151,7 @@ function configureLearningFilter() {
     label = "题目类型";
   } else if (dataset === "essays") {
     options = uniqueValues(state.learning.essays, "topic");
-    label = "主题分类";
+    label = "主题筛选";
   } else if (dataset === "leetcode") {
     options = ["简单", "中等", "困难"];
     label = "题目难度";
@@ -2195,7 +2214,7 @@ function renderLearningCard(dataset, record) {
     projects: `查看项目详情：${record.name || "未命名项目"}`,
     interviewKnowledge: `查看八股问答详情：${record.question || "未命名问题"}`,
     aptitudeTests: `查看题目详情：${record.question || "未命名题目"}`,
-    essays: `查看申论素材详情：${record.title || "未命名素材"}`,
+    essays: `查看申论素材详情：${record.topic || "未命名素材"}`,
     leetcode: `查看算法题详情：${record.name || "未命名题目"}`,
     mockInterviews: `查看模拟面试详情：${record.question || "未命名面试题"}`
   };
@@ -2274,11 +2293,11 @@ function getLearningCardView(dataset, record) {
     details: compactDetails([record.answer && `答案：${record.answer}`, record.wrongReason && `错因：${record.wrongReason}`])
   };
   if (dataset === "essays") return {
-    title: record.title || "未命名素材",
-    tag: record.topic || "未分类",
+    title: record.topic || "未命名素材",
+    tag: "申论素材",
     summary: record.content,
     states: [],
-    details: compactDetails([record.goldenSentence && `金句：${record.goldenSentence}`, record.caseStudy && `案例：${record.caseStudy}`])
+    details: compactDetails([record.question && `问题：${record.question}`, record.answer && `答案：${record.answer}`, record.remark && `备注：${record.remark}`])
   };
   if (dataset === "leetcode") return {
     title: `${record.number ? `#${record.number} ` : ""}${record.name || "未命名题目"}`,
@@ -3709,16 +3728,19 @@ function normalizeImportedLearning(data, imageRecords = []) {
       };
       const sourceRecord = key === "projects"
         ? normalizeProjectRecord(record)
-        : key === "leetcode"
-          ? normalizeLeetcodeRecord(record)
-          : key === "mockInterviews"
-            ? normalizeMockInterviewRecord(record)
-            : record;
+        : key === "essays"
+          ? normalizeEssayRecord(record)
+          : key === "leetcode"
+            ? normalizeLeetcodeRecord(record)
+            : key === "mockInterviews"
+              ? normalizeMockInterviewRecord(record)
+              : record;
       schema.forEach((field) => {
         result[field.key] = field.type === "checkbox"
           ? Boolean(sourceRecord[field.key])
           : String(sourceRecord[field.key] || "").trim();
       });
+      if (key === "essays") result.encounterCount = normalizeEncounterCount(record.encounterCount);
       result.images = normalizeImportedImages(record.images, key, result.id, index, imageRecords);
       const missingRequired = schema.find((field) => {
         const isCompatibleLegacyField = key === "leetcode" && field.key === "problemDetail";
