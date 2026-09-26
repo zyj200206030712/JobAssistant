@@ -1549,7 +1549,7 @@ function renderDashboard() {
   const companies = state.companies;
   const stats = {
     total: companies.length,
-    applied: companies.filter((item) => item.status === "已投递").length,
+    applied: companies.filter((item) => ACTIONED_STATUSES.has(item.status)).length,
     pending: companies.filter((item) => item.status === "待投递").length,
     interview: companies.filter((item) => INTERVIEW_STATUSES.has(item.status)).length,
     offer: companies.filter((item) => item.status === "Offer").length
